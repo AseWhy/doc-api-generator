@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <!-- Required meta tags -->
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+        <!-- Bootstrap CSS -->
+        <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+        <link rel="stylesheet" href="//unpkg.com/@highlightjs/cdn-assets@11.4.0/styles/default.min.css">
+
+        <script src="//unpkg.com/@highlightjs/cdn-assets@11.4.0/highlight.min.js"></script>
+
+        <title>
+            Документация %s
+        </title>
+
+        <style>
+            body {
+                margin: 1rem;
+            }
+
+            .logical-block {
+                margin-left: 0.15rem;
+                border-left: 1px rgb(23 23 23 / 25%%) dashed;
+                padding-left: 0.85rem;
+            }
+
+            h3, h2, h1, h4, h5, h6 {
+                display: inline-block;
+            }
+
+            p {
+                border-left: 1px gray solid;
+                padding-left: 0.5rem;
+                background: whitesmoke;
+            }
+
+            footer {
+                background: bisque;
+            }
+        </style>
+    </head>
+
+    <body>
+        %s
+        <script>
+            hljs.highlightAll();
+        </script>
+    </body>
+
+    <footer class="page-footer font-small blue">
+        <div class="text-center py-3">
+            Документация сгенерирована за %d (ms)
+        </div>
+    </footer>
+</html>
