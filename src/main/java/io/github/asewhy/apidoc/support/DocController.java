@@ -16,6 +16,7 @@ import java.util.List;
 public class DocController implements iDocProvider {
     private String description;
     private String name;
+    private String auth;
     private List<String> path;
     private List<DocMethod> methods = new ArrayList<>();
 
@@ -51,17 +52,21 @@ public class DocController implements iDocProvider {
 
     @Override
     public void pushHtmlDocumentation(@NotNull StringBuilder builder, @NotNull FormatterContext context) {
-        builder.append(context.makeStartDetailsBlock());
+        builder.append(context.makeStartDetailsBlock(""));
 
         builder.append(context.makeHeaderSummary(name));
 
         if(description != null) {
-            builder.append(context.makeParagraph(description));
+            builder.append(context.makeParagraph(context.processDescription(description)));
         }
 
         builder.append(context.makeStartListBlock());
 
         builder.append(context.makeListItem("Название: ".concat(name)));
+
+        if(auth != null) {
+            builder.append(context.makeListItem("Авторизация: ".concat(auth)));
+        }
 
         if(path != null) {
             builder.append(context.makeListItem("Путь: ".concat(String.join(", ", getPath(path, context)))));

@@ -67,7 +67,7 @@ public class DocDTOField implements iDocProvider {
                 .append(" *\n")
                 .append(context.tabState())
                 .append(" * ")
-                .append(description)
+                .append(context.processDescription(description))
             .append("\n");
         }
 
@@ -84,7 +84,7 @@ public class DocDTOField implements iDocProvider {
             .append(context.tabState())
             .append(" */\n")
             .append(context.tabState())
-            .append(context.format(name))
+            .append(context.format(name, javaField.getDeclaringClass()))
             .append(": ")
             .append(info.typeDec())
         .append(";");

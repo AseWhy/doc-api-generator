@@ -1,8 +1,9 @@
 package io.github.asewhy.apidoc.support;
 
-import io.github.asewhy.apidoc.components.StoreShakeService;
 import io.github.asewhy.apidoc.annotations.Description;
+import io.github.asewhy.apidoc.components.StoreShakeService;
 import io.github.asewhy.apidoc.support.bag.FormatterContext;
+import io.github.asewhy.apidoc.support.enums.DocDTOType;
 import io.github.asewhy.apidoc.support.interfaces.iDocProvider;
 import lombok.Getter;
 import lombok.Setter;
@@ -12,6 +13,7 @@ import org.jetbrains.annotations.NotNull;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Getter
 @Setter
@@ -20,7 +22,7 @@ public class DocDTO implements iDocProvider {
     private String name;
     private String mapping;
     private String description;
-    private Boolean isResponse;
+    private DocDTOType type;
     private Boolean isRaw;
     private Class<?> base;
     private Class<?> from;
@@ -50,7 +52,7 @@ public class DocDTO implements iDocProvider {
     public void pushHtmlDocumentation(@NotNull StringBuilder builder, @NotNull FormatterContext context) {
         var tabState = context.tabState();
 
-        builder.append(context.makeStartDetailsBlock());
+        builder.append(context.makeStartDetailsBlock(""));
 
         builder.append(context.makeHeaderDTOSummary(name));
 
@@ -60,10 +62,15 @@ public class DocDTO implements iDocProvider {
 
         builder.append(context.makeStartListBlock());
 
-        builder.append(context.tabState()).append(context.makeListItem("Тип: ".concat(isResponse ? "Сущность ответа" : isRaw ? "Неизвестно" : "Сущность запроса")));
+        builder.append(context.tabState()).append(context.makeListItem("Тип: ".concat(
+                type == DocDTOType.response ?
+                    "Сущность ответа" :
+                        type == DocDTOType.composite ?
+                            "Сущность ответа и запроса" : isRaw ? "Неизвестно" : "Сущность запроса"
+        )));
         builder.append(context.tabState()).append(context.makeListItem("Название: ".concat(name)));
 
-        if(isResponse) {
+        if(type == DocDTOType.response) {
             builder.append(context.tabState()).append(context.makeListItem("Маппинг: ".concat(mapping)));
         }
 
@@ -84,7 +91,7 @@ public class DocDTO implements iDocProvider {
                 .append(" *\n")
                 .append(tabState)
                 .append(" * ")
-                .append(description)
+                .append(context.processDescription(description))
             .append("\n");
         }
 
@@ -98,6 +105,8 @@ public class DocDTO implements iDocProvider {
 
         if(Object.class == from) {
             builder.append(context.addTab().tabState()).append("[key: string]: [value: any];\n");
+        } else if(Map.class == from) {
+            builder.append(context.addTab().tabState()).append("[key: any]: [value: any];\n");
         } else {
             boolean newline = false;
 

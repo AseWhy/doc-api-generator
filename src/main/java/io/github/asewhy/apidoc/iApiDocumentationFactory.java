@@ -15,7 +15,9 @@ public interface iApiDocumentationFactory {
      *
      * @param api поставляемая документация api
      */
-    void afterApiInitialize(iDocumentedApi api);
+    default void afterApiInitialize(iDocumentedApi api) {
+
+    }
 
     /**
      * Получить эндпоинт, по которому будет доступна документация

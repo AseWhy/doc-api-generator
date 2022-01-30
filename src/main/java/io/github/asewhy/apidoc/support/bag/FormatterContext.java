@@ -1,17 +1,18 @@
 package io.github.asewhy.apidoc.support.bag;
 
+import io.github.asewhy.apidoc.DocumentationUtils;
 import io.github.asewhy.apidoc.support.interfaces.iBaseHtmlProvider;
-import io.github.asewhy.conversions.support.iConversionFactory;
+import io.github.asewhy.conversions.ConversionFactoryInternal;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 public record FormatterContext(
     String tabState,
     Integer headTabIndex,
-    iConversionFactory factory
+    ConversionFactoryInternal factory
 ) implements iBaseHtmlProvider {
-    public String format(String name) {
-        return factory.convertFieldName(name);
+    public String format(String name, Class<?> clazz) {
+        return factory.getCallbackNameStrategy().convert(name, clazz);
     }
 
     public @NotNull String makeHeader(String content) {
@@ -28,6 +29,10 @@ public record FormatterContext(
 
     public @NotNull String makeHeaderSummary(String content) {
         return iBaseHtmlProvider.super.makeHeaderSummary(headTabIndex, content);
+    }
+
+    public @NotNull String processDescription(@NotNull String description) {
+        return description.replaceAll(DocumentationUtils.REFERENCES_PATTERN, this.makeDtoLink("$1"));
     }
 
     public @NotNull String formatPath(@NotNull String path) {

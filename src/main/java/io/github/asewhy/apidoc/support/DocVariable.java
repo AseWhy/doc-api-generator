@@ -24,7 +24,7 @@ public class DocVariable implements iDocProvider {
         builder.append(name);
 
         if(description != null) {
-            builder.append(" - ").append(description);
+            builder.append(" - ").append(context.processDescription(description));
         }
 
         if(required) {

@@ -5,7 +5,7 @@ import io.github.asewhy.apidoc.support.DocController;
 import io.github.asewhy.apidoc.support.DocDTO;
 import io.github.asewhy.apidoc.support.bag.FormatterContext;
 import io.github.asewhy.apidoc.support.interfaces.iDocumentedApi;
-import io.github.asewhy.conversions.support.iConversionFactory;
+import io.github.asewhy.conversions.ConversionFactoryInternal;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -27,7 +27,7 @@ public class DocumentedApi implements iDocumentedApi {
     private Map<Class<?>, DocDTO> dataTransferObjects = new HashMap<>();
 
     @Autowired
-    protected iConversionFactory conversionFactory;
+    protected ConversionFactoryInternal conversionFactory;
 
     @Override
     public DocDTO getDto(Class<?> clazz) {
@@ -57,13 +57,13 @@ public class DocumentedApi implements iDocumentedApi {
     public void pushHtmlDocumentation(@NotNull StringBuilder builder, @NotNull FormatterContext context) {
         builder.append(context.makeHeader("Api ".concat(name)));
 
-        builder.append(context.makeStartLogicalBlock());
+        builder.append(context.makeStartLogicalBlock("api no-bordered"));
 
         context = context.addHeader();
 
         builder.append(context.makeHeader("Контроллеры"));
 
-        builder.append(context.makeStartLogicalBlock());
+        builder.append(context.makeStartLogicalBlock("controllers no-bordered"));
 
         for(var controller: controllers.values()) {
             controller.pushHtmlDocumentation(builder, context.addHeader());
@@ -75,7 +75,7 @@ public class DocumentedApi implements iDocumentedApi {
 
         builder.append(context.makeHeader("ДТО"));
 
-        builder.append(context.makeStartLogicalBlock());
+        builder.append(context.makeStartLogicalBlock("dtos no-bordered"));
 
         for(var object: dataTransferObjects.values()) {
             object.pushHtmlDocumentation(builder, context.addHeader());

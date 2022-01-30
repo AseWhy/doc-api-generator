@@ -2,6 +2,7 @@ package io.github.asewhy.apidoc;
 
 import io.github.asewhy.ReflectionUtils;
 import io.github.asewhy.apidoc.support.bag.TsTypeInfo;
+import org.intellij.lang.annotations.RegExp;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Field;
@@ -13,6 +14,9 @@ import java.util.Collection;
 import java.util.Map;
 
 public class DocumentationUtils {
+    @RegExp
+    public static String REFERENCES_PATTERN = "\\[([aA-zZ0-9_$]+)]";
+
     /**
      * Преобразовать значение класса в значение TypeScript типа
      *
@@ -20,6 +24,10 @@ public class DocumentationUtils {
      * @return информация о TypeScript типе
      */
     public static @NotNull TsTypeInfo javaFieldToTypescriptField(Class<?> type) {
+        if(type == null) {
+            return new TsTypeInfo("<N/A>", null);
+        }
+
         if(Number.class.isAssignableFrom(type)) {
             return new TsTypeInfo("number", null);
         } else if(String.class.isAssignableFrom(type)) {

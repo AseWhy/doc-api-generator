@@ -6,7 +6,7 @@ import java.lang.annotation.*;
  * Указать описание для элемента взаимодействия с REST
  */
 @Documented
-@Target({ ElementType.TYPE, ElementType.FIELD, ElementType.METHOD })
+@Target({ ElementType.TYPE, ElementType.FIELD, ElementType.METHOD, ElementType.PARAMETER })
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Description {
     /**

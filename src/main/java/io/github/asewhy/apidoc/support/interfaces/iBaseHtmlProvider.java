@@ -50,13 +50,13 @@ public interface iBaseHtmlProvider {
     }
 
     @Contract(pure = true)
-    default @NotNull String makeStartLogicalBlock() {
-        return "<div class='logical-block'>";
+    default @NotNull String makeStartLogicalBlock(String clazz) {
+        return "<div class='logical-block " + clazz + "'>";
     }
 
     @Contract(pure = true)
-    default @NotNull String makeStartDetailsBlock() {
-        return "<details class='logical-block' open>";
+    default @NotNull String makeStartDetailsBlock(String clazz) {
+        return "<details class='logical-block " + clazz + "' open>";
     }
 
     @Contract(pure = true)

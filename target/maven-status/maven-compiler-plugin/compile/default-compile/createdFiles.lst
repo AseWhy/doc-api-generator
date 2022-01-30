@@ -5,6 +5,7 @@ io/github/asewhy/apidoc/support/bag/FormatterContext.class
 io/github/asewhy/apidoc/components/ApiController.class
 io/github/asewhy/apidoc/ApiDocumentation.class
 io/github/asewhy/apidoc/support/DocDTO.class
+io/github/asewhy/apidoc/support/enums/DocMethodType.class
 io/github/asewhy/apidoc/support/bag/TsTypeInfo.class
 io/github/asewhy/apidoc/support/DocController.class
 io/github/asewhy/apidoc/support/interfaces/iDocProvider.class
@@ -16,6 +17,7 @@ io/github/asewhy/apidoc/annotations/EnableApiDocGeneration.class
 io/github/asewhy/apidoc/components/StoreShakeService.class
 io/github/asewhy/apidoc/components/TemplateDataProvider.class
 io/github/asewhy/apidoc/beans/DocumentedApi.class
+io/github/asewhy/apidoc/support/enums/DocDTOType.class
 io/github/asewhy/apidoc/support/interfaces/iBaseHtmlProvider.class
 io/github/asewhy/apidoc/support/DocDTOField.class
 io/github/asewhy/apidoc/support/DocVariable.class
