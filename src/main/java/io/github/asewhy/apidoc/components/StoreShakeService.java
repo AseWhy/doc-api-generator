@@ -26,6 +26,7 @@ import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import javax.annotation.PostConstruct;
@@ -225,7 +226,8 @@ public class StoreShakeService {
         for(var parameter: parameters) {
             if(
                 parameter.isAnnotationPresent(ConvertMutator.class) ||
-                parameter.isAnnotationPresent(ConvertRequest.class)
+                parameter.isAnnotationPresent(ConvertRequest.class) ||
+                parameter.isAnnotationPresent(RequestBody.class)
             ) {
                 return parameter.getType();
             }
@@ -303,6 +305,8 @@ public class StoreShakeService {
         var dto = api.getDto(type);
 
         if(dto != null) {
+            dto.setType(dto.getType() == DocDTOType.request ? DocDTOType.composite : DocDTOType.response);
+
             return dto;
         } else {
             dto = api.makeDTO(type);
@@ -312,7 +316,9 @@ public class StoreShakeService {
         var store = factory.getStore();
         var metadata = store.getResponseBound(type).get(mapping);
 
-        dto.setType(dto.getType() == null ? DocDTOType.response : dto.getType() == DocDTOType.request ? DocDTOType.composite : DocDTOType.response);
+        System.out.println("RESPONSE " + type + " " + metadata);
+
+        dto.setType(DocDTOType.response);
         dto.setMapping(mapping);
 
         if(metadata != null) {
@@ -330,7 +336,7 @@ public class StoreShakeService {
             dto.setBase(type);
             dto.setName(type.getSimpleName());
 
-            for(var field: ReflectionUtils.scanFields(type, Set.of(Object.class))) {
+            for(var field: ReflectionUtils.scanFields(type)) {
                 dto.addField(field, this);
             }
         }
@@ -348,6 +354,8 @@ public class StoreShakeService {
         var dto = api.getDto(type);
 
         if(dto != null) {
+            dto.setType(dto.getType() == DocDTOType.response ? DocDTOType.composite : DocDTOType.request);
+
             return dto;
         } else {
             dto = api.makeDTO(type);
@@ -357,7 +365,7 @@ public class StoreShakeService {
         var store = factory.getStore();
         var metadata = store.getMutatorBound(type);
 
-        dto.setType(dto.getType() == null ? DocDTOType.request : dto.getType() == DocDTOType.response ? DocDTOType.composite : DocDTOType.request);
+        dto.setType(DocDTOType.request);
         dto.setMapping(null);
         dto.setBase(type);
 

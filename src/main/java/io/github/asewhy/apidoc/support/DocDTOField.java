@@ -1,5 +1,6 @@
 package io.github.asewhy.apidoc.support;
 
+import io.github.asewhy.ReflectionUtils;
 import io.github.asewhy.apidoc.DocumentationUtils;
 import io.github.asewhy.apidoc.components.StoreShakeService;
 import io.github.asewhy.apidoc.annotations.Description;
@@ -41,7 +42,11 @@ public class DocDTOField implements iDocProvider {
         }
 
         if(ConversionResponse.class.isAssignableFrom(type)) {
-            this.reference = store.shakeResponseDto(type, parent.getMapping());
+            var pureType = ReflectionUtils.findXGeneric(type, 0);
+
+            if(pureType != null) {
+                this.reference = store.shakeResponseDto(pureType, parent.getMapping());
+            }
         }
     }
 
@@ -49,7 +54,6 @@ public class DocDTOField implements iDocProvider {
      * Преобразовать строку в TS тип
      *
      * @param context контекст форматирования, с инструментами форматирования
-     * @return сформированная строка с типом typescript
      */
     public void pushHtmlDocumentation(@NotNull StringBuilder builder, @NotNull FormatterContext context) {
         var info = DocumentationUtils.javaFieldToTypescriptField(javaField);
