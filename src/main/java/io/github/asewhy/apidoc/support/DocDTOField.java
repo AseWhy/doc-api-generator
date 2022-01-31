@@ -8,17 +8,23 @@ import io.github.asewhy.apidoc.support.bag.FormatterContext;
 import io.github.asewhy.apidoc.support.interfaces.iDocProvider;
 import io.github.asewhy.conversions.ConversionMutator;
 import io.github.asewhy.conversions.ConversionResponse;
+import io.github.asewhy.conversions.support.annotations.MutatorExcludes;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Field;
+import java.util.Arrays;
+import java.util.Objects;
+import java.util.Set;
 
 @Getter
 @Setter
 @ToString
 public class DocDTOField implements iDocProvider {
+    protected static Set<Class<?>> SKIP_ANNOTATIONS = Set.of(Description.class, MutatorExcludes.class);
+
     private String name;
     private String description;
     private DocDTO parent;
@@ -57,6 +63,7 @@ public class DocDTOField implements iDocProvider {
      */
     public void pushHtmlDocumentation(@NotNull StringBuilder builder, @NotNull FormatterContext context) {
         var info = DocumentationUtils.javaFieldToTypescriptField(javaField);
+        var documentation = this.parent.getDocumentation();
 
         builder
             .append(context.tabState())
@@ -82,6 +89,32 @@ public class DocDTOField implements iDocProvider {
                 .append(" * ")
                 .append(info.comment())
             .append("\n");
+        }
+
+        var annotations = Arrays.stream(javaField.getAnnotations()).filter(type -> !SKIP_ANNOTATIONS.contains(type.annotationType())).toList();
+
+        if(annotations.size() > 0) {
+            builder.append(context.tabState()).append(" * \n");
+
+            for (var annotation : annotations) {
+                var type = annotation.annotationType();
+                var description = documentation.getAnnotation(type);
+
+                builder.append(context.tabState()).append(" * ");
+
+                if (description != null) {
+                    builder.append(
+                        Objects.requireNonNullElseGet(
+                            description.descriptor(annotation),
+                            () -> DocumentationUtils.formatAnnotation(annotation.toString())
+                        )
+                    );
+                } else {
+                    builder.append(DocumentationUtils.formatAnnotation(annotation.toString()));
+                }
+
+                builder.append("\n");
+            }
         }
 
         builder

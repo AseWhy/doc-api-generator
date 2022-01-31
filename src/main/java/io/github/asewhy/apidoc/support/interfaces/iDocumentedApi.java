@@ -1,7 +1,10 @@
 package io.github.asewhy.apidoc.support.interfaces;
 
+import io.github.asewhy.apidoc.support.DocAnnotation;
 import io.github.asewhy.apidoc.support.DocController;
 import io.github.asewhy.apidoc.support.DocDTO;
+
+import java.util.function.Function;
 
 public interface iDocumentedApi extends iDocProvider {
     /**
@@ -35,6 +38,22 @@ public interface iDocumentedApi extends iDocProvider {
      * @return документация контроллера
      */
     DocController makeController(Class<?> clazz);
+
+    /**
+     * Создать документацию для аннтоации класса clazz
+     *
+     * @param clazz класс для которого нужно получить документацию аннотации
+     * @return документация для аннотации класса
+     */
+    <T> DocAnnotation<T> makeAnnotation(Class<T> clazz, Function<T, String> description);
+
+    /**
+     * Получить документацию для аннтоации класса clazz
+     *
+     * @param clazz класс для которого нужно получить документацию аннотации
+     * @return документация для аннотации класса
+     */
+    <T> DocAnnotation<T> getAnnotation(Class<T> clazz);
 
     String getDocumentation();
 

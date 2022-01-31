@@ -72,11 +72,22 @@ public class DocumentationUtils {
         var type = field.getType();
 
         if(Collection.class.isAssignableFrom(type)) {
-            var ofType = javaFieldToTypescriptField(ReflectionUtils.findXGeneric(field));
+            var collectionType = ReflectionUtils.findXGeneric(field);
+            var ofType = javaFieldToTypescriptField(collectionType);
 
             return new TsTypeInfo(ofType.typeDec() + "[]", ofType.comment());
         } else {
             return javaFieldToTypescriptField(type);
         }
+    }
+
+    /**
+     * Преобразовать аннотацию вида @com.example.Name(first="Duke", middle="of", last="Java") в @Name(first="Duke", middle="of", last="Java")
+     *
+     * @param annotationDeclaration исходный текст аннотации
+     * @return форматированное значение аннотации
+     */
+    public static @NotNull String formatAnnotation(String annotationDeclaration) {
+        return annotationDeclaration.replaceAll("(@)[aA-zZ.]+\\.([^.]+)", "$1$2");
     }
 }

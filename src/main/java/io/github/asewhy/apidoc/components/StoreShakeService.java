@@ -51,6 +51,8 @@ public class StoreShakeService {
 
     @PostConstruct
     void init() {
+        apiDocumentationFactory.beforeApiInitialize(api);
+
         if(!apiDocumentationFactory.requireApiInitialize()) {
             apiDocumentationFactory.afterApiInitialize(api);
             return;
@@ -315,8 +317,6 @@ public class StoreShakeService {
         var factory = provider.getFactory();
         var store = factory.getStore();
         var metadata = store.getResponseBound(type).get(mapping);
-
-        System.out.println("RESPONSE " + type + " " + metadata);
 
         dto.setType(DocDTOType.response);
         dto.setMapping(mapping);

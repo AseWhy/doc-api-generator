@@ -13,6 +13,7 @@
 /home/astecom/git/doc-api-generator/src/main/java/io/github/asewhy/apidoc/components/StoreShakeService.java
 /home/astecom/git/doc-api-generator/src/main/java/io/github/asewhy/apidoc/support/DocController.java
 /home/astecom/git/doc-api-generator/src/main/java/io/github/asewhy/apidoc/components/ApiController.java
+/home/astecom/git/doc-api-generator/src/main/java/io/github/asewhy/apidoc/support/DocAnnotation.java
 /home/astecom/git/doc-api-generator/src/main/java/io/github/asewhy/apidoc/support/interfaces/iDocProvider.java
 /home/astecom/git/doc-api-generator/src/main/java/io/github/asewhy/apidoc/components/TemplateDataProvider.java
 /home/astecom/git/doc-api-generator/src/main/java/io/github/asewhy/apidoc/annotations/Description.java

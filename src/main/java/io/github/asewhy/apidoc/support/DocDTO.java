@@ -5,6 +5,7 @@ import io.github.asewhy.apidoc.components.StoreShakeService;
 import io.github.asewhy.apidoc.support.bag.FormatterContext;
 import io.github.asewhy.apidoc.support.enums.DocDTOType;
 import io.github.asewhy.apidoc.support.interfaces.iDocProvider;
+import io.github.asewhy.apidoc.support.interfaces.iDocumentedApi;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -24,11 +25,12 @@ public class DocDTO implements iDocProvider {
     private String description;
     private DocDTOType type;
     private Boolean isRaw;
+    private iDocumentedApi documentation;
     private Class<?> base;
     private Class<?> from;
     private List<DocDTOField> fields = new ArrayList<>();
 
-    public DocDTO(@NotNull Class<?> from) {
+    public DocDTO(@NotNull Class<?> from, iDocumentedApi parent) {
         var description = from.getAnnotation(Description.class);
 
         if(description != null) {
@@ -42,6 +44,7 @@ public class DocDTO implements iDocProvider {
         }
 
         this.from = from;
+        this.documentation = parent;
     }
 
     public void addField(Field found, StoreShakeService shakeService) {
