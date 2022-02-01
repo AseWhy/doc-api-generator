@@ -323,18 +323,29 @@ public class StoreShakeService {
 
         if(metadata != null) {
             var bound = metadata.getBoundClass();
+            var description = bound.getAnnotation(Description.class);
 
             dto.setIsRaw(false);
             dto.setBase(bound);
             dto.setName(bound.getSimpleName());
 
+            if(description != null) {
+                dto.setDescription(description.value());
+            }
+
             for(var field: metadata.getBoundFields()) {
                 dto.addField(field, this);
             }
         } else {
+            var description = type.getAnnotation(Description.class);
+
             dto.setIsRaw(true);
             dto.setBase(type);
             dto.setName(type.getSimpleName());
+
+            if(description != null) {
+                dto.setDescription(description.value());
+            }
 
             for(var field: ReflectionUtils.scanFields(type)) {
                 dto.addField(field, this);
@@ -364,12 +375,18 @@ public class StoreShakeService {
         var factory = provider.getFactory();
         var store = factory.getStore();
         var metadata = store.getMutatorBound(type);
+        var description = type.getAnnotation(Description.class);
 
         dto.setType(DocDTOType.request);
         dto.setMapping(null);
         dto.setBase(type);
 
+        if(description != null) {
+            dto.setDescription(description.value());
+        }
+
         if(metadata.getFoundFields().size() == 0) {
+
             dto.setIsRaw(true);
 
             for (var field : ReflectionUtils.scanFields(type, Set.of(Object.class))) {

@@ -78,7 +78,7 @@ public class DocDTOField implements iDocProvider {
                 .append(" *\n")
                 .append(context.tabState())
                 .append(" * ")
-                .append(context.processDescription(description))
+                .append(context.processDescriptionComment(description))
             .append("\n");
         }
 

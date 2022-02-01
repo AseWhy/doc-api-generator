@@ -90,7 +90,7 @@ public class DocDTO implements iDocProvider {
                 .append(" *\n")
                 .append(tabState)
                 .append(" * ")
-                .append(context.processDescription(description))
+                .append(context.processDescriptionComment(description))
             .append("\n");
         }
 

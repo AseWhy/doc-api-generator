@@ -2,7 +2,6 @@ package io.github.asewhy.apidoc;
 
 import io.github.asewhy.ReflectionUtils;
 import io.github.asewhy.apidoc.support.bag.TsTypeInfo;
-import org.intellij.lang.annotations.RegExp;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Field;
@@ -12,10 +11,11 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Collection;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 public class DocumentationUtils {
-    @RegExp
-    public static String REFERENCES_PATTERN = "\\[([aA-zZ0-9_$]+)]";
+    public static Pattern REFERENCES_PATTERN = Pattern.compile("\\[([aA-zZ0-9_$]+)]");
+    public static Pattern REFERENCES_NEWLINE_PATTERN = Pattern.compile("(\n\r|\n)\s*([^\n]+)");
 
     /**
      * Преобразовать значение класса в значение TypeScript типа

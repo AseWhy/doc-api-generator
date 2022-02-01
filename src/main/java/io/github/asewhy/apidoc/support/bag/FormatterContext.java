@@ -31,8 +31,16 @@ public record FormatterContext(
         return iBaseHtmlProvider.super.makeHeaderSummary(headTabIndex, content);
     }
 
+    public @NotNull String processDescriptionComment(@NotNull String description) {
+        return DocumentationUtils.REFERENCES_NEWLINE_PATTERN
+            .matcher(processDescription(description))
+        .replaceAll("$1" + this.tabState + " * $2");
+    }
+
     public @NotNull String processDescription(@NotNull String description) {
-        return description.replaceAll(DocumentationUtils.REFERENCES_PATTERN, this.makeDtoLink("$1"));
+        return DocumentationUtils.REFERENCES_PATTERN
+            .matcher(description.trim())
+        .replaceAll(this.makeDtoLink("$1"));
     }
 
     public @NotNull String formatPath(@NotNull String path) {
