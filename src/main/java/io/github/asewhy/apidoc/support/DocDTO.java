@@ -69,7 +69,7 @@ public class DocDTO implements iDocProvider {
         builder.append(context.tabState()).append(context.makeListItem("Название: ".concat(name)));
         builder.append(context.tabState()).append(context.makeListItem("Конвертируемая: ".concat(isRaw ? "Нет" : "Да")));
 
-        if(type == DocDTOType.response) {
+        if(type == DocDTOType.response && mapping != null) {
             builder.append(context.tabState()).append(context.makeListItem("Маппинг: ".concat(mapping)));
         }
 
