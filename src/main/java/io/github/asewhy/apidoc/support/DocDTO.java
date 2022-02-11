@@ -53,7 +53,7 @@ public class DocDTO implements iDocProvider {
 
     @Override
     public void pushHtmlDocumentation(@NotNull StringBuilder builder, @NotNull FormatterContext context) {
-        var tabState = context.tabState();
+        var getTabState = context.getTabState();
 
         builder.append(context.makeStartDetailsBlock(""));
 
@@ -65,12 +65,12 @@ public class DocDTO implements iDocProvider {
 
         builder.append(context.makeStartListBlock());
 
-        builder.append(context.tabState()).append(context.makeListItem("Тип: ".concat(type == DocDTOType.response ? "Сущность ответа" : type == DocDTOType.composite ? "Сущность ответа и запроса" : isRaw ? "Неизвестно" : "Сущность запроса")));
-        builder.append(context.tabState()).append(context.makeListItem("Название: ".concat(name)));
-        builder.append(context.tabState()).append(context.makeListItem("Конвертируемая: ".concat(isRaw ? "Нет" : "Да")));
+        builder.append(context.getTabState()).append(context.makeListItem("Тип: ".concat(type == DocDTOType.response ? "Сущность ответа" : type == DocDTOType.composite ? "Сущность ответа и запроса" : isRaw ? "Неизвестно" : "Сущность запроса")));
+        builder.append(context.getTabState()).append(context.makeListItem("Название: ".concat(name)));
+        builder.append(context.getTabState()).append(context.makeListItem("Конвертируемая: ".concat(isRaw ? "Нет" : "Да")));
 
         if(type == DocDTOType.response && mapping != null) {
-            builder.append(context.tabState()).append(context.makeListItem("Маппинг: ".concat(mapping)));
+            builder.append(context.getTabState()).append(context.makeListItem("Маппинг: ".concat(mapping)));
         }
 
         builder.append(context.makeEndListBlock());
@@ -78,34 +78,34 @@ public class DocDTO implements iDocProvider {
         builder.append(context.makeStartHighlight("typescript"));
 
         builder
-            .append(tabState)
+            .append(getTabState)
             .append("/**\n")
-            .append(tabState)
+            .append(getTabState)
             .append(" * DTO ")
             .append(name)
         .append("\n");
 
         if(description != null) {
-            builder.append(tabState)
+            builder.append(getTabState)
                 .append(" *\n")
-                .append(tabState)
+                .append(getTabState)
                 .append(" * ")
                 .append(context.processDescriptionComment(description))
             .append("\n");
         }
 
         builder
-            .append(tabState)
+            .append(getTabState)
             .append(" */\n")
-            .append(tabState)
+            .append(getTabState)
             .append("interface ")
             .append(name)
         .append(" {\n");
 
         if(Object.class == from) {
-            builder.append(context.addTab().tabState()).append("[key: string]: [value: any];\n");
+            builder.append(context.addTab().getTabState()).append("[key: string]: [value: any];\n");
         } else if(Map.class == from) {
-            builder.append(context.addTab().tabState()).append("[key: any]: [value: any];\n");
+            builder.append(context.addTab().getTabState()).append("[key: any]: [value: any];\n");
         } else {
             boolean newline = false;
 
@@ -123,7 +123,7 @@ public class DocDTO implements iDocProvider {
         }
 
         builder
-            .append(tabState)
+            .append(getTabState)
             .append("}")
         .append(context.makeEndHighlight());
 

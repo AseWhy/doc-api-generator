@@ -15,7 +15,7 @@ import java.util.regex.Pattern;
 
 public class DocumentationUtils {
     public static Pattern REFERENCES_PATTERN = Pattern.compile("\\[([aA-zZ0-9_$]+)]");
-    public static Pattern REFERENCES_NEWLINE_PATTERN = Pattern.compile("(\n\r|\n)\s*([^\n]+)");
+    public static Pattern REFERENCES_NEWLINE_PATTERN = Pattern.compile("(\n\r|\n)\\s*([^\n]+)");
 
     /**
      * Преобразовать значение класса в значение TypeScript типа
@@ -75,7 +75,7 @@ public class DocumentationUtils {
             var collectionType = ReflectionUtils.findXGeneric(field);
             var ofType = javaFieldToTypescriptField(collectionType);
 
-            return new TsTypeInfo(ofType.typeDec() + "[]", ofType.comment());
+            return new TsTypeInfo(ofType.getTypeDec() + "[]", ofType.getComment());
         } else {
             return javaFieldToTypescriptField(type);
         }

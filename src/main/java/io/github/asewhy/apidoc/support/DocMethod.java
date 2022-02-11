@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Getter
 @Setter
@@ -55,7 +56,7 @@ public class DocMethod implements iDocProvider {
         }
 
         if(methods != null) {
-            builder.append(context.makeListItem("Методы: ".concat(String.join(", ", methods.stream().map(Enum::toString).toList()))));
+            builder.append(context.makeListItem("Методы: ".concat(methods.stream().map(Enum::toString).collect(Collectors.joining(", ")))));
         }
 
         if(path != null) {

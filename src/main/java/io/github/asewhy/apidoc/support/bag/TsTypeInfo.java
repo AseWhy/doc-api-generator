@@ -1,7 +1,11 @@
 package io.github.asewhy.apidoc.support.bag;
 
-public record TsTypeInfo(
-    String typeDec,
-    String comment
-) {
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
+@Getter
+@AllArgsConstructor
+public class TsTypeInfo {
+    private final String typeDec;
+    private final String comment;
 }

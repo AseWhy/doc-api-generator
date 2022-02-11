@@ -18,6 +18,7 @@ import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Getter
 @Setter
@@ -66,41 +67,41 @@ public class DocDTOField implements iDocProvider {
         var documentation = this.parent.getDocumentation();
 
         builder
-            .append(context.tabState())
+            .append(context.getTabState())
             .append("/**\n")
-            .append(context.tabState())
+            .append(context.getTabState())
             .append(" * ")
             .append(name)
         .append("\n");
 
         if(description != null) {
-            builder.append(context.tabState())
+            builder.append(context.getTabState())
                 .append(" *\n")
-                .append(context.tabState())
+                .append(context.getTabState())
                 .append(" * ")
                 .append(context.processDescriptionComment(description))
             .append("\n");
         }
 
-        if(info.comment() != null) {
-            builder.append(context.tabState())
+        if(info.getComment() != null) {
+            builder.append(context.getTabState())
                 .append(" *\n")
-                .append(context.tabState())
+                .append(context.getTabState())
                 .append(" * ")
-                .append(info.comment())
+                .append(info.getComment())
             .append("\n");
         }
 
-        var annotations = Arrays.stream(javaField.getAnnotations()).filter(type -> !SKIP_ANNOTATIONS.contains(type.annotationType())).toList();
+        var annotations = Arrays.stream(javaField.getAnnotations()).filter(type -> !SKIP_ANNOTATIONS.contains(type.annotationType())).collect(Collectors.toList());
 
         if(annotations.size() > 0) {
-            builder.append(context.tabState()).append(" * \n");
+            builder.append(context.getTabState()).append(" * \n");
 
             for (var annotation : annotations) {
                 var type = annotation.annotationType();
                 var description = documentation.getAnnotation(type);
 
-                builder.append(context.tabState()).append(" * ");
+                builder.append(context.getTabState()).append(" * ");
 
                 if (description != null) {
                     builder.append(
@@ -118,12 +119,12 @@ public class DocDTOField implements iDocProvider {
         }
 
         builder
-            .append(context.tabState())
+            .append(context.getTabState())
             .append(" */\n")
-            .append(context.tabState())
+            .append(context.getTabState())
             .append(context.format(name, javaField.getDeclaringClass()))
             .append(": ")
-            .append(info.typeDec())
+            .append(info.getTypeDec())
         .append(";");
     }
 }

@@ -3,14 +3,18 @@ package io.github.asewhy.apidoc.support.bag;
 import io.github.asewhy.apidoc.DocumentationUtils;
 import io.github.asewhy.apidoc.support.interfaces.iBaseHtmlProvider;
 import io.github.asewhy.conversions.ConversionFactoryInternal;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
-public record FormatterContext(
-    String tabState,
-    Integer headTabIndex,
-    ConversionFactoryInternal factory
-) implements iBaseHtmlProvider {
+@Getter
+@AllArgsConstructor
+public class FormatterContext implements iBaseHtmlProvider {
+    private final String tabState;
+    private final Integer headTabIndex;
+    private final ConversionFactoryInternal factory;
+
     public String format(String name, Class<?> clazz) {
         return factory.getCallbackNameStrategy().convert(name, clazz);
     }
