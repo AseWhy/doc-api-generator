@@ -6,7 +6,7 @@ import io.github.asewhy.apidoc.support.DocController;
 import io.github.asewhy.apidoc.support.DocDTO;
 import io.github.asewhy.apidoc.support.bag.FormatterContext;
 import io.github.asewhy.apidoc.support.interfaces.iDocumentedApi;
-import io.github.asewhy.conversions.ConversionFactoryInternal;
+import io.github.asewhy.conversions.ConversionConfigurationInternal;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -31,7 +31,7 @@ public class DocumentedApi implements iDocumentedApi {
     private Map<Class<?>, DocAnnotation<?>> annotations = new HashMap<>();
 
     @Autowired
-    protected ConversionFactoryInternal conversionFactory;
+    protected ConversionConfigurationInternal config;
 
     @Override
     public DocDTO getDto(Class<?> clazz) {
@@ -104,6 +104,6 @@ public class DocumentedApi implements iDocumentedApi {
 
     @Override
     public String getDocumentation() {
-        return getHtmlDocumentation(new FormatterContext("", 1, conversionFactory));
+        return getHtmlDocumentation(new FormatterContext("", 1, config));
     }
 }

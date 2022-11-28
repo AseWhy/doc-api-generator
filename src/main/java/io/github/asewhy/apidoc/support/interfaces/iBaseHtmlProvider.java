@@ -55,8 +55,8 @@ public interface iBaseHtmlProvider {
     }
 
     @Contract(pure = true)
-    default @NotNull String makeStartDetailsBlock(String clazz) {
-        return "<details class='logical-block " + clazz + "' open>";
+    default @NotNull String makeStartDetailsBlock(String clazz, boolean open) {
+        return "<details class='logical-block " + clazz + "' " + (open ? "open" : "") + ">";
     }
 
     @Contract(pure = true)

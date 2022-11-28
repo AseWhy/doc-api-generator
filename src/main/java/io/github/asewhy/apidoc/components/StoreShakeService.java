@@ -58,7 +58,7 @@ public class StoreShakeService {
             return;
         }
 
-        var factory = provider.getFactory();
+        var factory = provider.getConfig();
         var store = factory.getStore();
         var mutators = store.getMutatorsMap().keySet();
         var responses = store.getResponseMap();
@@ -276,7 +276,7 @@ public class StoreShakeService {
      */
     private boolean canProcess(@NotNull Method method, Class<?> controllerRoot, String mapping) {
         var result = GenericTypeResolver.resolveReturnType(method, controllerRoot);
-        var store = provider.getFactory().getStore();
+        var store = provider.getConfig().getStore();
 
         if(method.isAnnotationPresent(ForceDocumented.class)) {
             return true;
@@ -314,7 +314,7 @@ public class StoreShakeService {
             dto = api.makeDTO(type);
         }
 
-        var factory = provider.getFactory();
+        var factory = provider.getConfig();
         var store = factory.getStore();
         var metadata = store.getResponseBound(type).get(mapping);
 
@@ -372,7 +372,7 @@ public class StoreShakeService {
             dto = api.makeDTO(type);
         }
 
-        var factory = provider.getFactory();
+        var factory = provider.getConfig();
         var store = factory.getStore();
         var metadata = store.getMutatorBound(type);
         var description = type.getAnnotation(Description.class);

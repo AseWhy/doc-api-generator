@@ -55,7 +55,7 @@ public class DocDTO implements iDocProvider {
     public void pushHtmlDocumentation(@NotNull StringBuilder builder, @NotNull FormatterContext context) {
         var getTabState = context.getTabState();
 
-        builder.append(context.makeStartDetailsBlock(""));
+        builder.append(context.makeStartDetailsBlock("", true));
 
         builder.append(context.makeHeaderDTOSummary(name));
 

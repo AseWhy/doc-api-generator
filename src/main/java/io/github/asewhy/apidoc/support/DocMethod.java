@@ -31,16 +31,17 @@ public class DocMethod implements iDocProvider {
 
     @Override
     public void pushHtmlDocumentation(@NotNull StringBuilder builder, @NotNull FormatterContext context) {
-        builder.append(context.makeStartDetailsBlock(""));
+        var formatPath = path != null ? context.formatPath(String.join(", ", controller.getPath(path, context))) : null;
+        var formatMethods = methods != null ? methods.stream().map(Enum::toString).collect(Collectors.joining(", ")) : null;
 
-        builder.append(context.makeHeaderSummary(name));
+        builder.append(context.makeStartDetailsBlock("", false));
+        builder.append(context.makeHeaderSummary("[" + formatMethods + "] " + formatPath));
 
         if(description != null) {
             builder.append(context.makeParagraph(context.processDescription(description)));
         }
 
         builder.append(context.makeStartListBlock());
-
         builder.append(context.makeListItem("Название: ".concat(name)));
 
         if(original != null) {
@@ -55,12 +56,12 @@ public class DocMethod implements iDocProvider {
             builder.append(context.makeListItem("Тип: Фактический"));
         }
 
-        if(methods != null) {
-            builder.append(context.makeListItem("Методы: ".concat(methods.stream().map(Enum::toString).collect(Collectors.joining(", ")))));
+        if(formatMethods != null) {
+            builder.append(context.makeListItem("Методы: ".concat(formatMethods)));
         }
 
         if(path != null) {
-            builder.append(context.makeListItem("Путь в контроллере: ".concat(context.formatPath(String.join(", ", controller.getPath(path, context))))));
+            builder.append(context.makeListItem("Путь в контроллере: ".concat(formatPath)));
         }
 
         if(path != null) {

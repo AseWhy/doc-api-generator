@@ -2,7 +2,7 @@ package io.github.asewhy.apidoc.support.bag;
 
 import io.github.asewhy.apidoc.DocumentationUtils;
 import io.github.asewhy.apidoc.support.interfaces.iBaseHtmlProvider;
-import io.github.asewhy.conversions.ConversionFactoryInternal;
+import io.github.asewhy.conversions.ConversionConfigurationInternal;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.jetbrains.annotations.Contract;
@@ -13,10 +13,10 @@ import org.jetbrains.annotations.NotNull;
 public class FormatterContext implements iBaseHtmlProvider {
     private final String tabState;
     private final Integer headTabIndex;
-    private final ConversionFactoryInternal factory;
+    private final ConversionConfigurationInternal config;
 
     public String format(String name, Class<?> clazz) {
-        return factory.getCallbackNameStrategy().convert(name, clazz);
+        return config.getNamingStrategy().convert(name, clazz);
     }
 
     public @NotNull String makeHeader(String content) {
@@ -68,7 +68,7 @@ public class FormatterContext implements iBaseHtmlProvider {
         return new FormatterContext(
             tabState + "\t",
             headTabIndex,
-            factory
+            config
         );
     }
 
@@ -77,7 +77,7 @@ public class FormatterContext implements iBaseHtmlProvider {
         return new FormatterContext(
             tabState,
             headTabIndex >= 6 ? headTabIndex : headTabIndex + 1,
-            factory
+            config
         );
     }
 }

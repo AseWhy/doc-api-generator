@@ -52,7 +52,7 @@ public class DocController implements iDocProvider {
 
     @Override
     public void pushHtmlDocumentation(@NotNull StringBuilder builder, @NotNull FormatterContext context) {
-        builder.append(context.makeStartDetailsBlock(""));
+        builder.append(context.makeStartDetailsBlock("", true));
 
         builder.append(context.makeHeaderSummary(name));
 
