@@ -10,5 +10,5 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 @Import({ApiDocumentation.class})
 public @interface EnableApiDocGeneration {
-    String enableOnProfile() default "";
+
 }
