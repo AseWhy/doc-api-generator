@@ -18,6 +18,6 @@ public class ApiDocumentation {
     @Bean
     @ConditionalOnMissingBean(DocumentedApi.class)
     public DocumentedApi provideDocApi() {
-        return new DocumentedApi(config.docApi());
+        return new DocumentedApi(config.api(), config.security());
     }
 }

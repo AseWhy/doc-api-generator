@@ -1,13 +1,11 @@
 package io.github.asewhy.apidoc.descriptor.info;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 
 @Setter
 @Getter
 @ToString
+@Builder
 @AllArgsConstructor
 public class ApiInfo {
     private final String name;

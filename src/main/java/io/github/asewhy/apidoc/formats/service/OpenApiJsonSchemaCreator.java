@@ -1,5 +1,7 @@
 package io.github.asewhy.apidoc.formats.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.asewhy.ReflectionUtils;
 import io.github.asewhy.apidoc.IApiDocumentationConfiguration;
 import io.github.asewhy.apidoc.descriptor.DocDTO;
@@ -20,6 +22,7 @@ import java.util.stream.Collectors;
 public class OpenApiJsonSchemaCreator {
     protected final DocumentedApi api;
     protected final IApiDocumentationConfiguration config;
+    protected final ObjectMapper mapper;
 
     /**
      * Новый инстанс сервиса создания json схемы
@@ -30,6 +33,7 @@ public class OpenApiJsonSchemaCreator {
     public OpenApiJsonSchemaCreator(DocumentedApi api, @NotNull IApiDocumentationConfiguration config) {
         this.api = api;
         this.config = config;
+        this.mapper = config.objectMapper();
     }
 
     /**
@@ -67,6 +71,50 @@ public class OpenApiJsonSchemaCreator {
     }
 
     /**
+     * Получить схему для простого типа (Строки, Энума, числа, бувого значения, даты)
+     *
+     * @param type тип
+     * @return схема
+     */
+    public JsonSchema getSchemaForSimpleType(Class<?> type) {
+        if(Enum.class.isAssignableFrom(type)) {
+            var constants = (Object[]) type.getEnumConstants();
+
+            return EnumSchema.builder()
+                .value(
+                    Arrays.stream(constants)
+                        .filter(Objects::nonNull)
+                        .map(Object::toString)
+                    .collect(Collectors.toSet())
+                )
+            .build();
+        } else if(
+            Integer.class.isAssignableFrom(type) ||
+            Long.class.isAssignableFrom(type)
+        ) {
+            return IntegerSchema.builder()
+                .format(Integer.class.isAssignableFrom(type) ? "int32" : "int64")
+            .build();
+        } else if(Number.class.isAssignableFrom(type)) {
+            return NumberSchema.builder().build();
+        } else if(Boolean.class.isAssignableFrom(type)) {
+            return BooleanSchema.builder().build();
+        } else if(
+            Temporal.class.isAssignableFrom(type) ||
+            Instant.class.isAssignableFrom(type) ||
+            Date.class.isAssignableFrom(type)
+        ) {
+            return StringSchema.builder()
+                .format("date-time")
+            .build();
+        } else if(String.class.isAssignableFrom(type)) {
+            return StringSchema.builder().build();
+        }
+
+        return null;
+    }
+
+    /**
      * Получить схему для поля
      *
      * @param field поле для генерации схемы
@@ -89,52 +137,22 @@ public class OpenApiJsonSchemaCreator {
 
             if(genericDto != null) {
                 items = new ReferenceSchema("#/components/schemas/" + genericDto.getName());
-            } else {
-                items = ObjectSchema.builder().build();
+            } else if(isSimpleType(firstGeneric)) {
+                items = getSchemaForSimpleType(firstGeneric);
             }
 
             schema = ArraySchema.builder()
                 .items(items)
             .build();
-        } else if(Enum.class.isAssignableFrom(javaType)) {
-            var constants = (Object[]) javaType.getEnumConstants();
-
-            schema = EnumSchema.builder()
-                .value(
-                    Arrays.stream(constants)
-                        .filter(Objects::nonNull)
-                        .map(Object::toString)
-                    .collect(Collectors.toSet())
-                )
-            .build();
-        } else if(
-            Integer.class.isAssignableFrom(javaType) ||
-            Long.class.isAssignableFrom(javaType)
-        ) {
-            schema = IntegerSchema.builder()
-                .format(Integer.class.isAssignableFrom(javaType) ? "int32" : "int64")
-            .build();
-        } else if(Number.class.isAssignableFrom(javaType)) {
-            schema = NumberSchema.builder().build();
-        } else if(Boolean.class.isAssignableFrom(javaType)) {
-            schema = BooleanSchema.builder().build();
-        } else if(
-            Temporal.class.isAssignableFrom(javaType) ||
-            Instant.class.isAssignableFrom(javaType) ||
-            Date.class.isAssignableFrom(javaType)
-        ) {
-            schema = StringSchema.builder()
-                .format("date-time")
-            .build();
-        } else if(String.class.isAssignableFrom(javaType)) {
-            schema = StringSchema.builder().build();
+        } else if(isSimpleType(javaType)) {
+            schema = getSchemaForSimpleType(javaType);
         } else {
             var reference = field.getReference();
 
             if(reference != null) {
                 schema = new ReferenceSchema("#/components/schemas/" + reference.getName());
             } else {
-                schema = ObjectSchema.builder().build();
+                schema = getSchemaForType(javaType, new HashSet<>());
             }
         }
 
@@ -151,7 +169,7 @@ public class OpenApiJsonSchemaCreator {
      * @param dto объект dto
      * @return схема
      */
-    public Map<String, JsonSchema> getSchemaForDto(@NotNull DocDTO dto) {
+    public Map<String, JsonSchema> getSchemaForDto(@NotNull DocDTO dto) throws JsonProcessingException {
         var schemas = new HashMap<String, JsonSchema>();
         var javaType = dto.getFrom();
 
@@ -177,6 +195,10 @@ public class OpenApiJsonSchemaCreator {
 
                 if (genericDto != null) {
                     items = new ReferenceSchema("#/components/schemas/" + genericDto.getName());
+                } else if(isSimpleType(firstGeneric)) {
+                    items = getSchemaForSimpleType(firstGeneric);
+                } else {
+                    items = ObjectSchema.builder().build();
                 }
 
                 schemas.put(
@@ -186,46 +208,9 @@ public class OpenApiJsonSchemaCreator {
                     .build()
                 );
             }
-        } else if(Enum.class.isAssignableFrom(javaType)) {
-            schemas.put(
-                dto.getName(),
-                EnumSchema.builder()
-                    .value(
-                        Arrays.stream((Object[]) javaType.getEnumConstants())
-                            .filter(Objects::nonNull)
-                            .map(Object::toString)
-                        .collect(Collectors.toSet())
-                    )
-                .build()
-            );
-        } else if(
-            Integer.class.isAssignableFrom(javaType) ||
-            Long.class.isAssignableFrom(javaType)
-        ) {
-            schemas.put(
-                dto.getName(),
-                IntegerSchema.builder()
-                    .format(Integer.class.isAssignableFrom(javaType) ? "int32" : "int64")
-                .build()
-            );
-        } else if(Number.class.isAssignableFrom(javaType)) {
-            schemas.put(dto.getName(), NumberSchema.builder().build());
-        } else if(Boolean.class.isAssignableFrom(javaType)) {
-            schemas.put(dto.getName(), BooleanSchema.builder().build());
-        } else if(String.class.isAssignableFrom(javaType)) {
-            schemas.put(dto.getName(), StringSchema.builder().build());
-        } else if(
-            Temporal.class.isAssignableFrom(javaType) ||
-            Instant.class.isAssignableFrom(javaType) ||
-            Date.class.isAssignableFrom(javaType)
-        ) {
-            schemas.put(
-                dto.getName(),
-                StringSchema.builder()
-                    .format("date-time")
-                .build()
-            );
-        } else {
+        } else if(isSimpleType(javaType)) {
+            schemas.put(dto.getName(), getSchemaForSimpleType(javaType));
+        }  else {
             var properties = new HashMap<String, JsonSchema>();
             var fields = dto.getFields();
 
@@ -245,7 +230,12 @@ public class OpenApiJsonSchemaCreator {
 
         for(var schema: schemas.values()) {
             if(schema != null) {
+                var example = dto.getExample();
                 var description = dto.getDescription();
+
+                if(example != null && !example.isEmpty()) {
+                    schema.setExample(mapper.readValue(example.trim(), HashMap.class));
+                }
 
                 if(description != null && !description.isEmpty()) {
                     schema.setDescription(
@@ -260,5 +250,86 @@ public class OpenApiJsonSchemaCreator {
         }
 
         return schemas;
+    }
+
+    /**
+     * Получить схему для типа type
+     *
+     * @param type тип для которого нужно получить схему
+     * @param excludes массив исключений, для них схема в глубину генерироваться не будет.
+     * @return схема
+     */
+    public JsonSchema getSchemaForType(Class<?> type, Set<Class<?>> excludes) {
+        if(Map.class.isAssignableFrom(type)) {
+            return ObjectSchema.builder()
+                .additionalProperties(true)
+            .build();
+        }
+
+        var fields = ReflectionUtils.scanFields(type);
+        var properties = new HashMap<String, JsonSchema>();
+
+        for(var current: fields) {
+            var fieldType = current.getType();
+
+            if(excludes.contains(fieldType)) {
+                continue;
+            }
+
+            if(Collection.class.isAssignableFrom(fieldType)) {
+                var items = (JsonSchema) null;
+                var firstGeneric = ReflectionUtils.findXGeneric(current);
+
+                if(firstGeneric == null) {
+                    firstGeneric = Object.class;
+                }
+
+                var genericDto = api.getDto(firstGeneric);
+
+                if(genericDto != null) {
+                    items = new ReferenceSchema("#/components/schemas/" + genericDto.getName());
+                } else if(isSimpleType(firstGeneric)) {
+                    items = getSchemaForSimpleType(firstGeneric);
+                } else {
+                    items = ObjectSchema.builder().build();
+                }
+
+                properties.put(
+                    current.getName(),
+                    ArraySchema.builder()
+                        .items(items)
+                    .build()
+                );
+            } else if(isSimpleType(fieldType)) {
+                properties.put(current.getName(), getSchemaForSimpleType(fieldType));
+            } else {
+                var computedExcludes = new HashSet<>(excludes);
+                computedExcludes.add(fieldType);
+                properties.put(current.getName(), getSchemaForType(fieldType, computedExcludes));
+            }
+        }
+
+        return ObjectSchema.builder()
+            .properties(properties)
+            .additionalProperties(false)
+        .build();
+    }
+
+    /**
+     * Можно ли обрабатывать тип как просто тип
+     *
+     * @param type тип
+     * @return true если можно
+     */
+    private static boolean isSimpleType(Class<?> type) {
+        return Integer.class.isAssignableFrom(type) ||
+            Long.class.isAssignableFrom(type) ||
+            Number.class.isAssignableFrom(type) ||
+            Boolean.class.isAssignableFrom(type) ||
+            Temporal.class.isAssignableFrom(type) ||
+            Enum.class.isAssignableFrom(type) ||
+            Instant.class.isAssignableFrom(type) ||
+            Date.class.isAssignableFrom(type) ||
+        String.class.isAssignableFrom(type);
     }
 }

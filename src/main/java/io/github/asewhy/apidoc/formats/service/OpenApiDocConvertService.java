@@ -1,12 +1,16 @@
 package io.github.asewhy.apidoc.formats.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import io.github.asewhy.apidoc.DocumentationUtils;
 import io.github.asewhy.apidoc.IApiDocumentationConfiguration;
 import io.github.asewhy.apidoc.descriptor.DocMethod;
 import io.github.asewhy.apidoc.descriptor.DocumentedApi;
 import io.github.asewhy.apidoc.descriptor.info.ApiInfo;
+import io.github.asewhy.apidoc.descriptor.info.ApiSecurity;
 import io.github.asewhy.apidoc.formats.openapi.*;
-import io.github.asewhy.apidoc.formats.openapi.schema.*;
+import io.github.asewhy.apidoc.formats.openapi.schema.JsonSchema;
+import io.github.asewhy.apidoc.formats.openapi.schema.ObjectSchema;
+import io.github.asewhy.apidoc.formats.openapi.schema.ReferenceSchema;
 import io.github.asewhy.apidoc.formats.openapi.support.OpenApiDest;
 import io.github.asewhy.apidoc.formats.support.IConversionService;
 import org.jetbrains.annotations.Contract;
@@ -48,7 +52,7 @@ public class OpenApiDocConvertService implements IConversionService<OpenApi> {
         return OpenApiInfo.builder()
             .title(info.getName())
             .description(info.getDescription())
-            .contacts(getContactsInfo(info))
+            .contact(getContactsInfo(info))
             .license(getLicenseInfo(info))
             .version(info.getVersion())
         .build();
@@ -99,14 +103,17 @@ public class OpenApiDocConvertService implements IConversionService<OpenApi> {
         var tags = new ArrayList<OpenApiTag>();
         var controllers = api.getControllers();
 
-        for(var current: controllers.values()) {
+        controllers.values()
+            .stream()
+            .sorted((a, b) -> CharSequence.compare(Objects.requireNonNullElse(a.getName(), ""), Objects.requireNonNullElse(b.getName(), "")))
+        .forEach(current -> {
             tags.add(
                 OpenApiTag.builder()
                     .name(current.getName())
                     .description(current.getDescription())
                 .build()
             );
-        }
+        });
 
         return tags;
     }
@@ -120,7 +127,34 @@ public class OpenApiDocConvertService implements IConversionService<OpenApi> {
     private OpenApiComponents getComponents(DocumentedApi api) {
         return OpenApiComponents.builder()
             .schemas(getComponentsSchemas(api))
+            .securitySchemes(getSecuritySchemas(api))
         .build();
+    }
+
+    /**
+     * Поставить информацию о безопасности api
+     *
+     * @param api апи
+     * @return информация о безопасности api
+     */
+    private Map<String, ApiSecurity> getSecuritySchemas(DocumentedApi api) {
+        var security = api.getSecurity();
+
+        if(security == null) {
+            return null;
+        }
+
+        var received = security.getSecurities();
+        var computed = new HashMap<String, ApiSecurity>();
+
+        for(var current: received.entrySet()) {
+            var name = current.getKey();
+            var value = current.getValue();
+
+            computed.put(name, value);
+        }
+
+        return computed;
     }
 
     /**
@@ -134,7 +168,11 @@ public class OpenApiDocConvertService implements IConversionService<OpenApi> {
         var objects = api.getDataTransferObjects();
 
         for(var current: objects.values()) {
-            schemas.putAll(jsonSchemaCreator.getSchemaForDto(current));
+            try {
+                schemas.putAll(jsonSchemaCreator.getSchemaForDto(current));
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException("Cannot process json.", e);
+            }
         }
 
         return schemas;
@@ -146,9 +184,10 @@ public class OpenApiDocConvertService implements IConversionService<OpenApi> {
      * @param api текущий апи приложения
      * @return инфомрация о маршрутах приложения
      */
-    private Map<String, OpenApiPath> getPaths(DocumentedApi api) {
+    private @NotNull Map<String, OpenApiPath> getPaths(@NotNull DocumentedApi api) {
         var paths = new HashMap<String, OpenApiPath>();
         var controllers = api.getControllers();
+        var globalSecurity = api.getSecurity();
 
         for(var controller: controllers.values()) {
             var methods = controller.getMethods();
@@ -161,12 +200,42 @@ public class OpenApiDocConvertService implements IConversionService<OpenApi> {
                     found = new OpenApiPath();
                 }
 
+                var description = method.getDescription();
+                var securityInfo = method.getSecurities();
+                var security = new HashSet<Map<String, List<String>>>();
+
+                if(securityInfo.isEmpty()) {
+                    var def = globalSecurity.getDef();
+
+                    if(def != null) {
+                        security.add(Collections.singletonMap(def.getName(), Collections.emptyList()));
+                    }
+                } else {
+                    for (var current : securityInfo) {
+                        var securityName = current.value();
+                        var securityData = globalSecurity.getSecurity(securityName);
+
+                        if(securityData == null) {
+                            throw new RuntimeException("Cannot find security info by name " + securityName);
+                        }
+
+                        security.add(
+                            Collections.singletonMap(
+                                securityName,
+                                current.scopes().length == 0 ? Collections.emptyList() : List.of(current.scopes())
+                            )
+                        );
+                    }
+                }
+
                 var operation = OpenApiOperation.builder()
                     .summary(method.getName())
-                    .description(method.getDescription())
+                    .description(description)
                     .deprecated(method.getDeprecated())
                     .tags(Set.of(controller.getName()))
                     .parameters(getMethodParameters(method))
+                    .security(security)
+
                     .requestBody(getMethodRequestBody(method))
                     .responses(getMethodResponsesBody(method))
                 .build();
@@ -264,25 +333,10 @@ public class OpenApiDocConvertService implements IConversionService<OpenApi> {
         for(var current: method.getVariables()) {
             var parameter = current.getParameter();
             var original = parameter.getType();
-            var type = (JsonSchema) StringSchema.builder().build();
             var generic = GenericTypeResolver.resolveType(parameter.getParameterizedType(), controllerOriginal);
 
             if(generic instanceof Class<?>) {
                 original = (Class<?>) generic;
-            }
-
-            if(Collection.class.isAssignableFrom(original)) {
-                type = ArraySchema.builder()
-                    .items(ObjectSchema.builder().build())
-                .build();
-            } else if(Boolean.class.isAssignableFrom(original)) {
-                type = BooleanSchema.builder().build();
-            } else if(Integer.class.isAssignableFrom(original) || Long.class.isAssignableFrom(original)) {
-                type = IntegerSchema.builder()
-                    .format(Long.class.isAssignableFrom(original) ? "int64" : "int32")
-                .build();
-            } else if(Number.class.isAssignableFrom(original)) {
-                type = NumberSchema.builder().build();
             }
 
             parameters.add(
@@ -290,7 +344,7 @@ public class OpenApiDocConvertService implements IConversionService<OpenApi> {
                     .required(current.getRequired())
                     .in(OpenApiDest.path)
                     .name(current.getName())
-                    .schema(type)
+                    .schema(jsonSchemaCreator.getSchemaForSimpleType(original))
                     .description(current.getDescription())
                 .build()
             );

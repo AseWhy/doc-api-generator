@@ -1,12 +1,12 @@
 package io.github.asewhy.apidoc.service;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.github.asewhy.ReflectionUtils;
-import io.github.asewhy.apidoc.annotations.Hidden;
-import io.github.asewhy.apidoc.annotations.documentation.Description;
-import io.github.asewhy.apidoc.annotations.ForceDocumented;
-import io.github.asewhy.apidoc.annotations.documentation.Example;
-import io.github.asewhy.apidoc.descriptor.*;
 import io.github.asewhy.apidoc.IApiDocumentationConfiguration;
+import io.github.asewhy.apidoc.annotations.ForceDocumented;
+import io.github.asewhy.apidoc.annotations.Hidden;
+import io.github.asewhy.apidoc.annotations.documentation.*;
+import io.github.asewhy.apidoc.descriptor.*;
 import io.github.asewhy.apidoc.descriptor.enums.DocDTOType;
 import io.github.asewhy.apidoc.descriptor.enums.DocMethodType;
 import io.github.asewhy.conversions.ConversionProvider;
@@ -22,7 +22,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.GenericTypeResolver;
 import org.springframework.core.annotation.AnnotatedElementUtils;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -31,10 +30,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import javax.annotation.PostConstruct;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 @Component
 @SuppressWarnings("UnusedReturnValue")
@@ -104,30 +100,28 @@ public class StoreShakeService {
             result = api.makeController(type);
         }
 
-        var methods = ReflectionUtils.scanMethods(type, Set.of(Object.class));
+        var securityAnnotation = AnnotatedElementUtils.findMergedAnnotation(type, Security.class);
+        var controllerAnnotation = AnnotatedElementUtils.findMergedAnnotation(type, Controller.class);
+        var requestAnnotation = AnnotatedElementUtils.findMergedAnnotation(type, RequestMapping.class);
+        var descriptionAnnotation = type.getAnnotation(Description.class);
 
-        for(var method: methods) {
-            var request = AnnotatedElementUtils.findMergedAnnotation(method, RequestMapping.class);
-            var mapping = getMappingName(method);
+        var securityInfo = new HashSet<Security>();
 
-            if(request != null && !method.isAnnotationPresent(Hidden.class)) {
-                result.addMethod(shakeControllerMethod(method, type, result, request, mapping));
-            }
+        if(securityAnnotation != null) {
+            securityInfo.add(securityAnnotation);
         }
 
-        var authorize = AnnotatedElementUtils.findMergedAnnotation(type, PreAuthorize.class);
-        var request = AnnotatedElementUtils.findMergedAnnotation(type, RequestMapping.class);
-        var description = type.getAnnotation(Description.class);
-
-        if(authorize != null) {
-            result.setAuth(authorize.value());
+        if(controllerAnnotation != null) {
+            securityInfo.addAll(Set.of(controllerAnnotation.security()));
         }
 
-        if(request != null) {
-            result.setPath(List.of(request.path()));
+        result.setSecurities(securityInfo);
 
-            if(!request.name().isBlank()) {
-                result.setName(request.name());
+        if(requestAnnotation != null) {
+            result.setPath(List.of(requestAnnotation.path()));
+
+            if(!requestAnnotation.name().isBlank()) {
+                result.setName(requestAnnotation.name());
             } else {
                 result.setName(type.getSimpleName());
             }
@@ -137,8 +131,19 @@ public class StoreShakeService {
 
         result.setOriginal(type);
 
-        if(description != null) {
-            result.setDescription(description.value());
+        if(descriptionAnnotation != null) {
+            result.setDescription(descriptionAnnotation.value());
+        }
+
+        var methods = ReflectionUtils.scanMethods(type, Set.of(Object.class));
+
+        for(var method: methods) {
+            var request = AnnotatedElementUtils.findMergedAnnotation(method, RequestMapping.class);
+            var mapping = getMappingName(method);
+
+            if(request != null && !method.isAnnotationPresent(Hidden.class)) {
+                result.addMethod(shakeControllerMethod(method, type, result, request, mapping));
+            }
         }
 
         return result;
@@ -157,9 +162,12 @@ public class StoreShakeService {
     public DocMethod shakeControllerMethod(@NotNull Method controllerMethod, Class<?> controllerType, DocController controller, RequestMapping request, String mapping) {
         var returnType = GenericTypeResolver.resolveReturnType(controllerMethod, controllerType);
         var parameters = controllerMethod.getParameters();
-        var description = controllerMethod.getAnnotation(Description.class);
-        var authorize = AnnotatedElementUtils.findMergedAnnotation(controllerMethod, PreAuthorize.class);
-        var example = controllerMethod.getAnnotation(Example.class);
+
+        var descriptionAnnotation = controllerMethod.getAnnotation(Description.class);
+        var securityAnnotation = AnnotatedElementUtils.findMergedAnnotation(controllerMethod, Security.class);
+        var responseAnnotation = AnnotatedElementUtils.findMergedAnnotation(controllerMethod, Response.class);
+        var methodAnnotation = AnnotatedElementUtils.findMergedAnnotation(controllerMethod, io.github.asewhy.apidoc.annotations.documentation.Method.class);
+        var exampleAnnotation = controllerMethod.getAnnotation(Example.class);
 
         var method = new DocMethod();
         var response = getRequestParameter(parameters);
@@ -168,9 +176,24 @@ public class StoreShakeService {
             method.setBody(shakeRequestDto(response));
         }
 
-        if(authorize != null) {
-            method.setAuth(authorize.value());
+        var securityInfo = new HashSet<>(controller.getSecurities());
+        var responseInfo = new HashSet<Response>();
+
+        if(securityAnnotation != null) {
+            securityInfo.add(securityAnnotation);
         }
+
+        if(responseAnnotation != null) {
+            responseInfo.add(responseAnnotation);
+        }
+
+        if(methodAnnotation != null) {
+            securityInfo.addAll(Set.of(methodAnnotation.security()));
+            responseInfo.addAll(Set.of(methodAnnotation.response()));
+        }
+
+        method.setSecurities(securityInfo);
+        method.setResponses(responseInfo);
 
         method.setType(canProcess(controllerMethod, controllerType, mapping) ? DocMethodType.pure : DocMethodType.nat);
 
@@ -186,12 +209,12 @@ public class StoreShakeService {
         method.setController(controller);
         method.setDeprecated(controllerMethod.isAnnotationPresent(Deprecated.class));
 
-        if(example != null) {
-            method.setExample(example.value());
+        if(exampleAnnotation != null) {
+            method.setExample(exampleAnnotation.value());
         }
 
-        if(description != null) {
-            method.setDescription(description.value());
+        if(descriptionAnnotation != null) {
+            method.setDescription(descriptionAnnotation.value());
         }
 
         return method;
@@ -241,7 +264,8 @@ public class StoreShakeService {
             if(
                 parameter.isAnnotationPresent(ConvertMutator.class) ||
                 parameter.isAnnotationPresent(ConvertRequest.class) ||
-                parameter.isAnnotationPresent(RequestBody.class)
+                parameter.isAnnotationPresent(RequestBody.class) ||
+                parameter.isAnnotationPresent(Body.class)
             ) {
                 return parameter.getType();
             }
@@ -335,41 +359,49 @@ public class StoreShakeService {
 
         if(metadata != null) {
             var bound = metadata.getBoundClass();
-            var description = bound.getAnnotation(Description.class);
-            var example = type.getAnnotation(Example.class);
+            var descriptionAnnotation = bound.getAnnotation(Description.class);
+            var exampleAnnotation = bound.getAnnotation(Example.class);
 
             dto.setIsRaw(false);
             dto.setBase(bound);
             dto.setName(bound.getSimpleName());
 
-            if(example != null) {
-                dto.setExample(example.value());
+            if(exampleAnnotation != null) {
+                dto.setExample(exampleAnnotation.value());
             }
 
-            if(description != null) {
-                dto.setDescription(description.value());
+            if(descriptionAnnotation != null) {
+                dto.setDescription(descriptionAnnotation.value());
             }
 
             for(var metaBound: metadata.getBound()) {
+                if(metaBound.isAnnotated(JsonIgnore.class)) {
+                    continue;
+                }
+
                 dto.addField(metaBound, this);
             }
         } else {
-            var description = type.getAnnotation(Description.class);
-            var example = type.getAnnotation(Example.class);
+            var descriptionAnnotation = type.getAnnotation(Description.class);
+            var exampleAnnotation = type.getAnnotation(Example.class);
 
             dto.setIsRaw(true);
             dto.setBase(type);
             dto.setName(type.getSimpleName());
 
-            if(example != null) {
-                dto.setExample(example.value());
+            if(exampleAnnotation != null) {
+                dto.setExample(exampleAnnotation.value());
             }
 
-            if(description != null) {
-                dto.setDescription(description.value());
+            if(descriptionAnnotation != null) {
+                dto.setDescription(descriptionAnnotation.value());
             }
 
             for(var field: ReflectionUtils.scanFields(type)) {
+                if(field.isAnnotationPresent(JsonIgnore.class)) {
+                    continue;
+                }
+
                 dto.addField(new BoundedSource(field, Set.of(field.getDeclaredAnnotations())), this);
             }
         }
@@ -397,14 +429,19 @@ public class StoreShakeService {
         var factory = provider.getConfig();
         var store = factory.getStore();
         var metadata = store.getMutatorBound(type);
-        var description = type.getAnnotation(Description.class);
+        var descriptionAnnotation = type.getAnnotation(Description.class);
+        var exampleAnnotation = type.getAnnotation(Example.class);
 
         dto.setType(DocDTOType.request);
         dto.setMapping(null);
         dto.setBase(type);
 
-        if(description != null) {
-            dto.setDescription(description.value());
+        if(exampleAnnotation != null) {
+            dto.setExample(exampleAnnotation.value());
+        }
+
+        if(descriptionAnnotation != null) {
+            dto.setDescription(descriptionAnnotation.value());
         }
 
         dto.setIsRaw(metadata.getBound().size() == 0);
@@ -413,10 +450,18 @@ public class StoreShakeService {
             var fields = ReflectionUtils.scanFields(type, Set.of(Object.class));
 
             for (var field: fields) {
+                if(field.isAnnotationPresent(JsonIgnore.class)) {
+                    continue;
+                }
+
                 dto.addField(new BoundedSource(field, Set.of(field.getDeclaredAnnotations())), this);
             }
         } else {
             for (var metaBound : metadata.getFound()) {
+                if(metaBound.isAnnotated(JsonIgnore.class)) {
+                    continue;
+                }
+
                 dto.addField(metaBound, this);
             }
         }

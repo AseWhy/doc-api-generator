@@ -9,4 +9,5 @@ import lombok.Setter;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public abstract class JsonSchema {
     private String description;
+    private Object example;
 }

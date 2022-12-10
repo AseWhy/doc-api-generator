@@ -70,7 +70,7 @@ public class ApiController {
             "<html lang=\"ru\">\n" +
             "  <head>\n" +
             "    <meta charset=\"UTF-8\">\n" +
-            "    <title>" + configuration.docApi().getName() + "</title>\n" +
+            "    <title>" + configuration.api().getName() + "</title>\n" +
             "    <link rel=\"stylesheet\" type=\"text/css\" href=\"swagger-ui.css\" />\n" +
             "    <link rel=\"stylesheet\" type=\"text/css\" href=\"swagger.css\" />\n" +
             "    <link rel=\"icon\" type=\"image/png\" href=\"favicon-32x32.png\" sizes=\"32x32\" />\n" +

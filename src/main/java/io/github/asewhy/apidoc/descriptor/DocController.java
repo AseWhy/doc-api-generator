@@ -1,6 +1,7 @@
 package io.github.asewhy.apidoc.descriptor;
 
 import io.github.asewhy.apidoc.DocumentationUtils;
+import io.github.asewhy.apidoc.annotations.documentation.Security;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -8,6 +9,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -15,7 +17,7 @@ import java.util.List;
 public class DocController {
     private String description;
     private String name;
-    private String auth;
+    private Set<Security> securities;
     private Class<?> original;
     private List<String> path;
     private List<DocMethod> methods = new ArrayList<>();

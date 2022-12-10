@@ -3,6 +3,7 @@ package io.github.asewhy.apidoc;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.asewhy.apidoc.descriptor.DocumentedApi;
 import io.github.asewhy.apidoc.descriptor.info.ApiInfo;
+import io.github.asewhy.apidoc.descriptor.info.ApiSecurityInfo;
 import io.github.asewhy.apidoc.descriptor.interfaces.IAnnotationRegistration;
 import org.hibernate.validator.constraints.Length;
 
@@ -17,11 +18,20 @@ public interface IApiDocumentationConfiguration {
     ObjectMapper objectMapper();
 
     /**
-     * Получить экземпляр документации api
+     * Получить экземпляр описания безопасновсти апи
      *
-     * @return экземпляр документации api
+     * @return экземпляр описания безопасности апи
      */
-    default ApiInfo docApi() {
+    default ApiSecurityInfo security() {
+        return null;
+    }
+
+    /**
+     * Получить экземпляр описания api
+     *
+     * @return экземпляр описания api
+     */
+    default ApiInfo api() {
         return new ApiInfo("Spring application");
     }
 

@@ -14,6 +14,6 @@ public class OpenApiInfo {
     private String description;
     private String termsOfService;
     private String version;
-    private OpenApiContacts contacts;
+    private OpenApiContacts contact;
     private OpenApiLicense license;
 }

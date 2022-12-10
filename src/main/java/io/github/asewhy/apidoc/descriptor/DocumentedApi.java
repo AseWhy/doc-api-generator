@@ -2,6 +2,7 @@ package io.github.asewhy.apidoc.descriptor;
 
 import io.github.asewhy.ReflectionUtils;
 import io.github.asewhy.apidoc.descriptor.info.ApiInfo;
+import io.github.asewhy.apidoc.descriptor.info.ApiSecurityInfo;
 import io.github.asewhy.apidoc.descriptor.interfaces.IAnnotationRegistration;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +20,7 @@ import java.util.function.Function;
 @SuppressWarnings("unchecked")
 public class DocumentedApi implements IAnnotationRegistration {
     private final ApiInfo info;
+    private final ApiSecurityInfo security;
 
     private Map<Class<?>, DocController> controllers = new HashMap<>();
     private Map<Class<?>, DocDTO> dataTransferObjects = new HashMap<>();

@@ -22,5 +22,5 @@ public class OpenApiOperation {
     private OpenApiBodyInfo requestBody;
     private Map<String, OpenApiBodyInfo> responses;
     private Boolean deprecated;
-    private Map<String, List<String>> security;
+    private Set<Map<String, List<String>>> security;
 }

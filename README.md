@@ -2,7 +2,7 @@
 
 Небольшой модуль для генерации документации api, модуль работает в паке с модулем конверсий и без него работать не может.
 
-## Конфигурация
+## Базовая конфигурация
 
 Для начала работы с модулем необходимо создать бин конфигурации, минимальный пример показан ниже:
 
@@ -13,12 +13,13 @@ import io.github.asewhy.apidoc.annotations.EnableApiDocGeneration;
 import io.github.asewhy.apidoc.descriptor.info.ApiInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
-@Service
+@Configuration
 @EnableApiDocGeneration
-@Profile({ "dev", "beta", "test" })
+@Profile({"dev", "beta", "test"})
 public class DocumentationConfig implements IApiDocumentationConfiguration {
     @Value("${spring.application.name}")
     protected String appName;
@@ -31,7 +32,7 @@ public class DocumentationConfig implements IApiDocumentationConfiguration {
     }
 
     @Override
-    public ApiInfo docApi() {
+    public ApiInfo api() {
         return new ApiInfo(appName, "2.2.8");
     }
 }
@@ -62,3 +63,56 @@ public class StorageResource extends ResourceServerConfigurerAdapter {
 ```
 
 Адрес документации можно поменять, реализовав в конфигурации методы `apiPath` и `docsPath`.
+
+### Безопасность
+
+Для описания способа доступа к апи можно указать так-же используемый способ авторизации. Ниже приведен пример как это можно сделать
+в конфигурации документации просто реализовав метод интерфейса:
+
+```java
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.github.asewhy.apidoc.IApiDocumentationConfiguration;
+import io.github.asewhy.apidoc.annotations.EnableApiDocGeneration;
+import io.github.asewhy.apidoc.descriptor.info.ApiInfo;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
+import org.springframework.stereotype.Service;
+
+@Configuration
+@EnableApiDocGeneration
+@Profile({"dev", "beta", "test"})
+public class DocumentationConfig implements IApiDocumentationConfiguration {
+    // ...
+    
+    @Override
+    public ApiSecurityInfo security() {
+        var info = new ApiSecurityInfo();
+
+        info.addSecurity(
+            ApiHttpSecurity
+                .builder()
+                .scheme(ApiHttpSecurityScheme.bearer)
+                .name("HttpBearerSecurity")
+            .build()
+        );
+
+        return info;
+    }
+    
+    // ...
+}
+```
+
+Код выше позволит указывать bearer токен авторизации для тестирования апи прямо на странице. Для авторизации так-же доступны
+и другие способы, смотри пакет `io.github.asewhy.apidoc.descriptor.info`.
+
+### Аннотации
+
+Пакет предоставляет свои аннотации для настройки того как будет отображаться документация:
+
+| Аннотация   | Описание                                                                                                                                                                                                                                                                            | Пример                                                                                                                                                                                                          |
+|-------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Description | Описание Поля/Метода/Контроллера/ДТО. Аннотация позволяет указать локализованное описание аннотируемой сущности                                                                                                                                                                     | @Description("Hello world")                                                                                                                                                                                     |
+| Example     | Пример для ДТО. Можно указать только над классом, предоставляет информацию о том какой пример отображать. Если аннотация отсутствует то swagger то генерирует пример автоматически. Пример должен быть предоставлен в том же формате что может обработать поставляемый ObjectMapper | @Example("""<br>&nbsp;&nbsp;&nbsp;&nbsp;{<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"foo": "bar",<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"baz": "bar"<br>&nbsp;&nbsp;&nbsp;&nbsp;}<br>""") |
