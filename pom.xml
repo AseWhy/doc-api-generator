@@ -8,7 +8,7 @@
 
     <groupId>io.github.asewhy</groupId>
     <artifactId>doc-api-generator</artifactId>
-    <version>1.4</version>
+    <version>1.4.1</version>
 
     <licenses>
         <license>

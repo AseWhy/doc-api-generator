@@ -126,6 +126,7 @@ public class StoreShakeService {
                 result.setName(type.getSimpleName());
             }
         } else {
+            result.setPath(Collections.emptyList());
             result.setName(type.getSimpleName());
         }
 
