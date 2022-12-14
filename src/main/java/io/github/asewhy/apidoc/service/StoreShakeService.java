@@ -2,7 +2,7 @@ package io.github.asewhy.apidoc.service;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.github.asewhy.ReflectionUtils;
-import io.github.asewhy.apidoc.IApiDocumentationConfiguration;
+import io.github.asewhy.apidoc.ApiDocumentationConfiguration;
 import io.github.asewhy.apidoc.annotations.ForceDocumented;
 import io.github.asewhy.apidoc.annotations.Hidden;
 import io.github.asewhy.apidoc.annotations.documentation.*;
@@ -42,7 +42,7 @@ public class StoreShakeService {
     @Autowired
     protected DocumentedApi api;
     @Autowired
-    protected IApiDocumentationConfiguration config;
+    protected ApiDocumentationConfiguration config;
 
     @PostConstruct
     public void init() {

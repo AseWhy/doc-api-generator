@@ -1,6 +1,6 @@
 package io.github.asewhy.apidoc.config;
 
-import io.github.asewhy.apidoc.IApiDocumentationConfiguration;
+import io.github.asewhy.apidoc.ApiDocumentationConfiguration;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -11,10 +11,10 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import java.util.Arrays;
 
 @Configuration
-@ConditionalOnBean(IApiDocumentationConfiguration.class)
+@ConditionalOnBean(ApiDocumentationConfiguration.class)
 public class DocumentationSpringAutoconfigure implements WebMvcConfigurer {
     @Autowired
-    protected IApiDocumentationConfiguration configuration;
+    protected ApiDocumentationConfiguration configuration;
 
     @Override
     public void addResourceHandlers(@NotNull ResourceHandlerRegistry registry) {

@@ -1,7 +1,7 @@
 package io.github.asewhy.apidoc.components;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import io.github.asewhy.apidoc.IApiDocumentationConfiguration;
+import io.github.asewhy.apidoc.ApiDocumentationConfiguration;
 import io.github.asewhy.apidoc.descriptor.DocumentedApi;
 import io.github.asewhy.apidoc.formats.ConversionServiceProvider;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,7 +23,7 @@ public class ApiController {
     @Autowired
     protected RequestMappingHandlerMapping handlerMapping;
     @Autowired
-    protected IApiDocumentationConfiguration configuration;
+    protected ApiDocumentationConfiguration configuration;
     @Autowired
     protected ConversionServiceProvider convertService;
 

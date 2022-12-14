@@ -3,7 +3,7 @@ package io.github.asewhy.apidoc.formats.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.asewhy.ReflectionUtils;
-import io.github.asewhy.apidoc.IApiDocumentationConfiguration;
+import io.github.asewhy.apidoc.ApiDocumentationConfiguration;
 import io.github.asewhy.apidoc.descriptor.DocDTO;
 import io.github.asewhy.apidoc.descriptor.DocDTOField;
 import io.github.asewhy.apidoc.descriptor.DocumentedApi;
@@ -18,10 +18,10 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
-@ConditionalOnBean(IApiDocumentationConfiguration.class)
+@ConditionalOnBean(ApiDocumentationConfiguration.class)
 public class OpenApiJsonSchemaCreator {
     protected final DocumentedApi api;
-    protected final IApiDocumentationConfiguration config;
+    protected final ApiDocumentationConfiguration config;
     protected final ObjectMapper mapper;
 
     /**
@@ -30,7 +30,7 @@ public class OpenApiJsonSchemaCreator {
      * @param api инстанс апи
      * @param config конфигурация
      */
-    public OpenApiJsonSchemaCreator(DocumentedApi api, @NotNull IApiDocumentationConfiguration config) {
+    public OpenApiJsonSchemaCreator(DocumentedApi api, @NotNull ApiDocumentationConfiguration config) {
         this.api = api;
         this.config = config;
         this.mapper = config.objectMapper();

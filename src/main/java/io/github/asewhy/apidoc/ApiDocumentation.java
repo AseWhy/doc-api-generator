@@ -9,11 +9,11 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@ConditionalOnBean(IApiDocumentationConfiguration.class)
+@ConditionalOnBean(ApiDocumentationConfiguration.class)
 @ComponentScan("io.github.asewhy.apidoc")
 public class ApiDocumentation {
     @Autowired
-    protected IApiDocumentationConfiguration config;
+    protected ApiDocumentationConfiguration config;
 
     @Bean
     @ConditionalOnMissingBean(DocumentedApi.class)

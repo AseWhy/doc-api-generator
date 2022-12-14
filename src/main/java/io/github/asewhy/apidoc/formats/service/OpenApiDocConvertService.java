@@ -1,8 +1,8 @@
 package io.github.asewhy.apidoc.formats.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import io.github.asewhy.apidoc.ApiDocumentationConfiguration;
 import io.github.asewhy.apidoc.DocumentationUtils;
-import io.github.asewhy.apidoc.IApiDocumentationConfiguration;
 import io.github.asewhy.apidoc.descriptor.DocMethod;
 import io.github.asewhy.apidoc.descriptor.DocumentedApi;
 import io.github.asewhy.apidoc.descriptor.info.ApiInfo;
@@ -24,10 +24,10 @@ import org.springframework.stereotype.Service;
 import java.util.*;
 
 @Service
-@ConditionalOnBean(IApiDocumentationConfiguration.class)
+@ConditionalOnBean(ApiDocumentationConfiguration.class)
 public class OpenApiDocConvertService implements IConversionService<OpenApi> {
     @Autowired
-    protected IApiDocumentationConfiguration config;
+    protected ApiDocumentationConfiguration config;
     @Autowired
     protected OpenApiJsonSchemaCreator jsonSchemaCreator;
 

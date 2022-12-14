@@ -8,6 +8,7 @@
 
 ```java
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.github.asewhy.apidoc.ApiDocumentationConfiguration;
 import io.github.asewhy.apidoc.IApiDocumentationConfiguration;
 import io.github.asewhy.apidoc.annotations.EnableApiDocGeneration;
 import io.github.asewhy.apidoc.descriptor.info.ApiInfo;
@@ -15,12 +16,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
-import org.springframework.stereotype.Service;
 
 @Configuration
 @EnableApiDocGeneration
 @Profile({"dev", "beta", "test"})
-public class DocumentationConfig implements IApiDocumentationConfiguration {
+public class DocumentationConfig implements ApiDocumentationConfiguration {
     @Value("${spring.application.name}")
     protected String appName;
     @Autowired
@@ -70,22 +70,19 @@ public class StorageResource extends ResourceServerConfigurerAdapter {
 в конфигурации документации просто реализовав метод интерфейса:
 
 ```java
-import com.fasterxml.jackson.databind.ObjectMapper;
+
+import io.github.asewhy.apidoc.ApiDocumentationConfiguration;
 import io.github.asewhy.apidoc.IApiDocumentationConfiguration;
 import io.github.asewhy.apidoc.annotations.EnableApiDocGeneration;
-import io.github.asewhy.apidoc.descriptor.info.ApiInfo;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
-import org.springframework.stereotype.Service;
 
 @Configuration
 @EnableApiDocGeneration
 @Profile({"dev", "beta", "test"})
-public class DocumentationConfig implements IApiDocumentationConfiguration {
+public class DocumentationConfig implements ApiDocumentationConfiguration {
     // ...
-    
+
     @Override
     public ApiSecurityInfo security() {
         var info = new ApiSecurityInfo();
@@ -100,7 +97,7 @@ public class DocumentationConfig implements IApiDocumentationConfiguration {
 
         return info;
     }
-    
+
     // ...
 }
 ```

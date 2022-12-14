@@ -4,12 +4,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.asewhy.apidoc.descriptor.DocumentedApi;
 import io.github.asewhy.apidoc.descriptor.info.ApiInfo;
 import io.github.asewhy.apidoc.descriptor.info.ApiSecurityInfo;
-import io.github.asewhy.apidoc.descriptor.interfaces.IAnnotationRegistration;
+import io.github.asewhy.apidoc.descriptor.interfaces.AnnotationRegistration;
 import org.hibernate.validator.constraints.Length;
 
 import javax.validation.constraints.*;
 
-public interface IApiDocumentationConfiguration {
+public interface ApiDocumentationConfiguration {
     /**
      * Получить экземпляр маппера объектов
      *
@@ -77,7 +77,7 @@ public interface IApiDocumentationConfiguration {
      *
      * @param api поставляемая документация api
      */
-    default void beforeApiInitialize(@org.jetbrains.annotations.NotNull IAnnotationRegistration api) {
+    default void beforeApiInitialize(@org.jetbrains.annotations.NotNull AnnotationRegistration api) {
         api.registerAnnotation(NotNull.class, annotation -> "Поле должно быть не null");
         api.registerAnnotation(Min.class, annotation -> "Минимальное значение " + annotation.value());
         api.registerAnnotation(Max.class, annotation -> "Максимальное значение " + annotation.value());

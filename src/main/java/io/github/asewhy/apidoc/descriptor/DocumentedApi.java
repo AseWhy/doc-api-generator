@@ -3,7 +3,7 @@ package io.github.asewhy.apidoc.descriptor;
 import io.github.asewhy.ReflectionUtils;
 import io.github.asewhy.apidoc.descriptor.info.ApiInfo;
 import io.github.asewhy.apidoc.descriptor.info.ApiSecurityInfo;
-import io.github.asewhy.apidoc.descriptor.interfaces.IAnnotationRegistration;
+import io.github.asewhy.apidoc.descriptor.interfaces.AnnotationRegistration;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -18,7 +18,7 @@ import java.util.function.Function;
 @ToString
 @RequiredArgsConstructor
 @SuppressWarnings("unchecked")
-public class DocumentedApi implements IAnnotationRegistration {
+public class DocumentedApi implements AnnotationRegistration {
     private final ApiInfo info;
     private final ApiSecurityInfo security;
 
