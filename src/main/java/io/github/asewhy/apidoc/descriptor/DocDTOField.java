@@ -6,7 +6,7 @@ import io.github.asewhy.apidoc.service.StoreShakeService;
 import io.github.asewhy.conversions.ConversionMutator;
 import io.github.asewhy.conversions.ConversionResponse;
 import io.github.asewhy.conversions.support.annotations.MutatorExcludes;
-import io.github.asewhy.conversions.support.iBound;
+import io.github.asewhy.conversions.support.Bound;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -24,13 +24,13 @@ public class DocDTOField {
     private String description;
     private DocDTO parent;
     private DocDTO reference;
-    private iBound bound;
+    private Bound bound;
 
     public String getDescription() {
         return description != null ? description.trim() : null;
     }
 
-    public DocDTOField(@NotNull iBound bound, DocDTO parent, StoreShakeService store) {
+    public DocDTOField(@NotNull Bound bound, DocDTO parent, StoreShakeService store) {
         this.parent = parent;
         this.bound = bound;
         this.name = bound.getPureName();

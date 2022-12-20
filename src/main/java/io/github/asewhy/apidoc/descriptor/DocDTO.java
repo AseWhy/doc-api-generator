@@ -3,7 +3,8 @@ package io.github.asewhy.apidoc.descriptor;
 import io.github.asewhy.apidoc.annotations.documentation.Description;
 import io.github.asewhy.apidoc.service.StoreShakeService;
 import io.github.asewhy.apidoc.descriptor.enums.DocDTOType;
-import io.github.asewhy.conversions.support.iBound;
+import io.github.asewhy.conversions.support.Bound;
+import io.github.asewhy.conversions.support.Bound;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -44,7 +45,7 @@ public class DocDTO {
         this.documentation = parent;
     }
 
-    public void addField(iBound bound, StoreShakeService shakeService) {
+    public void addField(Bound bound, StoreShakeService shakeService) {
         this.fields.add(new DocDTOField(bound, this, shakeService));
     }
 

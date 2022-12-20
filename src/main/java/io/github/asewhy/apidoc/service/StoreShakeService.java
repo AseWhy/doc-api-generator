@@ -3,6 +3,7 @@ package io.github.asewhy.apidoc.service;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.github.asewhy.ReflectionUtils;
 import io.github.asewhy.apidoc.ApiDocumentationConfiguration;
+import io.github.asewhy.apidoc.annotations.Default;
 import io.github.asewhy.apidoc.annotations.ForceDocumented;
 import io.github.asewhy.apidoc.annotations.Hidden;
 import io.github.asewhy.apidoc.annotations.documentation.*;
@@ -171,10 +172,10 @@ public class StoreShakeService {
         var exampleAnnotation = controllerMethod.getAnnotation(Example.class);
 
         var method = new DocMethod();
-        var response = getRequestParameter(parameters);
+        var requestParameter = getRequestParameter(parameters);
 
-        if(response != null) {
-            method.setBody(shakeRequestDto(response));
+        if(requestParameter != null) {
+            method.setBody(shakeRequestDto(requestParameter));
         }
 
         var securityInfo = new HashSet<>(controller.getSecurities());
@@ -191,6 +192,18 @@ public class StoreShakeService {
         if(methodAnnotation != null) {
             securityInfo.addAll(Set.of(methodAnnotation.security()));
             responseInfo.addAll(Set.of(methodAnnotation.response()));
+        }
+
+        if(!responseInfo.isEmpty()) {
+            for(var current: responseInfo) {
+                var type = current.type();
+
+                if(type == Default.class) {
+                    continue;
+                }
+
+                shakeResponseDto(type, mapping);
+            }
         }
 
         method.setSecurities(securityInfo);
@@ -216,6 +229,14 @@ public class StoreShakeService {
 
         if(descriptionAnnotation != null) {
             method.setDescription(descriptionAnnotation.value());
+        }
+
+        if(methodAnnotation != null) {
+            var methodDescription = methodAnnotation.description();
+
+            if(!methodDescription.value().isBlank()) {
+                method.setDescription(methodDescription.value());
+            }
         }
 
         return method;

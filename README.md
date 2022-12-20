@@ -105,11 +105,89 @@ public class DocumentationConfig implements ApiDocumentationConfiguration {
 Код выше позволит указывать bearer токен авторизации для тестирования апи прямо на странице. Для авторизации так-же доступны
 и другие способы, смотри пакет `io.github.asewhy.apidoc.descriptor.info`.
 
+### Кастомные фабрики схем
+
+С версии 1.5.1 можно поставлять кастомные фабрики схем в глобальный контекст спринга. После инициализации фабрики она будет использована для
+создания схем типов openapi.
+
+Создать фабрику можно следующим образом:
+
+```java
+import io.github.asewhy.apidoc.formats.openapi.schema.JsonSchema;
+import io.github.asewhy.apidoc.formats.service.support.OpenApiJsonSchemaGenerator;
+import io.github.asewhy.apidoc.formats.service.support.OpenApiSimpleTypeSchemaFactory;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.stereotype.Component;
+import paa.coder.noodleCriteriaBuilder.restFilter.NoodleRestFilter;
+import paa.coder.noodleCriteriaBuilder.restFilter.payloads.RestFilter;
+
+import java.util.HashSet;
+
+@Component
+public class NoodleRestFilterSchemaGenerator implements OpenApiSimpleTypeSchemaFactory {
+    @Override
+    public JsonSchema create(Class<?> type, @NotNull OpenApiJsonSchemaGenerator context) {
+        return context.getSchemaForType(RestFilter.class, new HashSet<>());
+    }
+
+    @Override
+    public Class<?> getType() {
+        return NoodleRestFilter.class;
+    }
+}
+```
+
+В методе getType нужно вернуть тип, который будет описывать создаваемая схема. Метод create создает схему, если схему невозможно создать
+он должен вернуть null, тогда будет использован стандартный механизм создания схемы. Фабрика будет использоваться во всех случаях, когда
+генератор создает схему.
+
+Ниже дополнительно приведен пример создания схемы для описания Instant класса.
+
+```java
+import io.github.asewhy.apidoc.formats.openapi.schema.JsonSchema;
+import io.github.asewhy.apidoc.formats.openapi.schema.ObjectSchema;
+import io.github.asewhy.apidoc.formats.openapi.schema.StringSchema;
+import io.github.asewhy.apidoc.formats.service.support.OpenApiJsonSchemaGenerator;
+import io.github.asewhy.apidoc.formats.service.support.OpenApiSimpleTypeSchemaFactory;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.stereotype.Component;
+
+import java.time.Instant;
+import java.util.HashMap;
+import java.util.Set;
+
+@Component
+public class NoodleRestFilterSchemaGenerator implements OpenApiSimpleTypeSchemaFactory {
+    @Override
+    public JsonSchema create(Class<?> type, @NotNull OpenApiJsonSchemaGenerator context) {
+        var properties = new HashMap<String, JsonSchema>();
+
+        properties.put("zone", StringSchema.builder().build());
+        properties.put("date", StringSchema.builder().format("date-time").build());
+        
+        return ObjectSchema.builder()
+            .required(Set.of("zone", "date"))
+            .properties(properties)
+            .additionalProperties(false)
+        .build();
+    }
+
+    @Override
+    public Class<?> getType() {
+        return Instant.class;
+    }
+}
+```
+
 ### Аннотации
 
 Пакет предоставляет свои аннотации для настройки того как будет отображаться документация:
 
-| Аннотация   | Описание                                                                                                                                                                                                                                                                            | Пример                                                                                                                                                                                                          |
-|-------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Description | Описание Поля/Метода/Контроллера/ДТО. Аннотация позволяет указать локализованное описание аннотируемой сущности                                                                                                                                                                     | @Description("Hello world")                                                                                                                                                                                     |
-| Example     | Пример для ДТО. Можно указать только над классом, предоставляет информацию о том какой пример отображать. Если аннотация отсутствует то swagger то генерирует пример автоматически. Пример должен быть предоставлен в том же формате что может обработать поставляемый ObjectMapper | @Example("""<br>&nbsp;&nbsp;&nbsp;&nbsp;{<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"foo": "bar",<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"baz": "bar"<br>&nbsp;&nbsp;&nbsp;&nbsp;}<br>""") |
+| Аннотация   | Описание                                                                                                                                                                                                                                                                            | Пример                                                                                                                                                                                                                                                                                                                           |
+|-------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Description | Описание Поля/Метода/Контроллера/ДТО. Аннотация позволяет указать локализованное описание аннотируемой сущности                                                                                                                                                                     | @Description("Hello world")                                                                                                                                                                                                                                                                                                      |
+| Example     | Пример для ДТО. Можно указать только над классом, предоставляет информацию о том какой пример отображать. Если аннотация отсутствует то swagger то генерирует пример автоматически. Пример должен быть предоставлен в том же формате что может обработать поставляемый ObjectMapper | @Example("""<br>　{<br>　　"foo": "bar",<br>　　"baz": "bar"<br>　}<br>""")                                                                                                                                                                                                                                                            |
+| Method      | Информация о методе АПИ, можно указать варианты ответа сервера, вплоть до статусов ответа и тела ответа, можно указать политики безопасности и описание самого метода.                                                                                                              | @Method(<br>　response = {<br>　　@Response(<br>　　　type = SomeOtherClass.class,<br>　　　value = HttpStatus.BAD_REQUEST,<br>　　　description = @Description("Some description")<br>　　),<br>　　@Response(<br>　　　description = @Description("Success description")<br>　　)<br>　},<br>　description = @Description("""Описание метода""")<br>) |
+| Response    | Информация об ответе сервера, можно указать статус код и тело возможного ответа                                                                                                                                                                                                     | @Response(<br>　description = @Description("Success description")<br>)                                                                                                                                                                                                                                                            |
+| Hidden      | Скрыть Поле/Метод/Контроллер/ДТО от взора сканера апи. Все аннотируемое этой аннотацией будет проигнорированною                                                                                                                                                                     | @Hidden                                                                                                                                                                                                                                                                                                                          |
+| Body        | Пометить параметр метода как тело запроса, если используется не стандартная аннотация спринг.                                                                                                                                                                                       | @Body                                                                                                                                                                                                                                                                                                                            |

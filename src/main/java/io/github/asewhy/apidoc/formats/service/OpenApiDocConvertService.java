@@ -3,6 +3,7 @@ package io.github.asewhy.apidoc.formats.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.github.asewhy.apidoc.ApiDocumentationConfiguration;
 import io.github.asewhy.apidoc.DocumentationUtils;
+import io.github.asewhy.apidoc.annotations.Default;
 import io.github.asewhy.apidoc.descriptor.DocMethod;
 import io.github.asewhy.apidoc.descriptor.DocumentedApi;
 import io.github.asewhy.apidoc.descriptor.info.ApiInfo;
@@ -12,7 +13,9 @@ import io.github.asewhy.apidoc.formats.openapi.schema.JsonSchema;
 import io.github.asewhy.apidoc.formats.openapi.schema.ObjectSchema;
 import io.github.asewhy.apidoc.formats.openapi.schema.ReferenceSchema;
 import io.github.asewhy.apidoc.formats.openapi.support.OpenApiDest;
-import io.github.asewhy.apidoc.formats.support.IConversionService;
+import io.github.asewhy.apidoc.formats.service.support.OpenApiJsonSchemaGenerator;
+import io.github.asewhy.apidoc.formats.support.ConversionService;
+import io.github.asewhy.conversions.ConversionProvider;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -25,11 +28,13 @@ import java.util.*;
 
 @Service
 @ConditionalOnBean(ApiDocumentationConfiguration.class)
-public class OpenApiDocConvertService implements IConversionService<OpenApi> {
+public class OpenApiDocConvertService implements ConversionService<OpenApi> {
     @Autowired
     protected ApiDocumentationConfiguration config;
     @Autowired
-    protected OpenApiJsonSchemaCreator jsonSchemaCreator;
+    protected OpenApiJsonSchemaGenerator jsonSchemaCreator;
+    @Autowired
+    protected ConversionProvider provider;
 
     @Override
     public OpenApi convert(@NotNull DocumentedApi api) {
@@ -45,7 +50,7 @@ public class OpenApiDocConvertService implements IConversionService<OpenApi> {
     /**
      * Получить информацию об апи в формате openapi
      *
-     * @param info инфорация об апи
+     * @param info информация об апи
      * @return информация об api в формате openapi
      */
     private OpenApiInfo getInfo(@NotNull ApiInfo info) {
@@ -59,9 +64,9 @@ public class OpenApiDocConvertService implements IConversionService<OpenApi> {
     }
 
     /**
-     * Получить ионфмацию о лицензии
+     * Получить информацию о лицензии
      *
-     * @param info инфомрация о лицензии
+     * @param info информация о лицензии
      * @return информация о лицензии
      */
     private OpenApiLicense getLicenseInfo(@NotNull ApiInfo info) {
@@ -76,9 +81,9 @@ public class OpenApiDocConvertService implements IConversionService<OpenApi> {
     }
 
     /**
-     * Получаем инфу о контактах
+     * Получаем информацию о контактах
      *
-     * @param info ифнормация об апи
+     * @param info информация об апи
      * @return информация о контактах
      */
     private OpenApiContacts getContactsInfo(@NotNull ApiInfo info) {
@@ -122,7 +127,7 @@ public class OpenApiDocConvertService implements IConversionService<OpenApi> {
      * Поставить информацию о типах апи
      *
      * @param api текущий апи приложения
-     * @return инфомрация о типах приложения
+     * @return информация о типах приложения
      */
     private OpenApiComponents getComponents(DocumentedApi api) {
         return OpenApiComponents.builder()
@@ -161,7 +166,7 @@ public class OpenApiDocConvertService implements IConversionService<OpenApi> {
      * Поставить информацию о типах апи
      *
      * @param api текущий апи приложения
-     * @return инфомрация о типах приложения
+     * @return информация о типах приложения
      */
     private @NotNull Map<String, JsonSchema> getComponentsSchemas(DocumentedApi api) {
         var schemas = new HashMap<String, JsonSchema>();
@@ -182,7 +187,7 @@ public class OpenApiDocConvertService implements IConversionService<OpenApi> {
      * Поставить информацию о маршрутах апи
      *
      * @param api текущий апи приложения
-     * @return инфомрация о маршрутах приложения
+     * @return информация о маршрутах приложения
      */
     private @NotNull Map<String, OpenApiPath> getPaths(@NotNull DocumentedApi api) {
         var paths = new HashMap<String, OpenApiPath>();
@@ -261,45 +266,83 @@ public class OpenApiDocConvertService implements IConversionService<OpenApi> {
     }
 
     /**
-     * Получить информацию о типах ответа который прийдет в ответ на запрос на этот метод
+     * Получить информацию о типах ответа который прейдет в ответ на запрос на этот метод
      *
      * @param method метод
      * @return информация о типе сущности ответа
      */
     @Contract(pure = true)
     private @NotNull Map<String, OpenApiBodyInfo> getMethodResponsesBody(@NotNull DocMethod method) {
-        var body = method.getResponse();
-        var responses = new HashMap<String, OpenApiBodyInfo>();
-        var content = new HashMap<String, Object>();
+        var responses = method.getResponses();
+        var response = method.getResponse();
+        var result = new HashMap<String, OpenApiBodyInfo>();
 
-        if(body == null) {
-            content.put("application/json", new OpenApiSchema(ObjectSchema.builder().build()));
-
-            responses.put("200",
-                OpenApiBodyInfo.builder()
-                    .content(content)
-                    .description("Успешный ответ")
-                .build()
-            );
+        if(responses.isEmpty()) {
+            if (response == null) {
+                result.put("200",
+                    OpenApiBodyInfo.builder()
+                        .content(Collections.singletonMap("application/json", new OpenApiSchema(ObjectSchema.builder().build())))
+                        .description("Успешный ответ")
+                    .build()
+                );
+            } else {
+                result.put("200",
+                    OpenApiBodyInfo.builder()
+                        .content(
+                            Collections.singletonMap(
+                                "application/json",
+                                new OpenApiSchema(new ReferenceSchema("#/components/schemas/" + response.getName()))
+                            )
+                        )
+                        .description(Objects.requireNonNullElse(response.getDescription(), "Успешный ответ"))
+                    .build()
+                );
+            }
         } else {
-            content.put("application/json", new OpenApiSchema(new ReferenceSchema("#/components/schemas/" + body.getName())));
+            for(var current: responses) {
+                var type = current.type();
+                var builder = OpenApiBodyInfo.builder();
 
-            responses.put("200",
-                OpenApiBodyInfo.builder()
-                    .content(content)
-                    .description(Objects.requireNonNullElse(body.getDescription(), "Успешный ответ"))
-                .build()
-            );
+                if(type == Default.class) {
+                    if(response != null) {
+                        builder.content(
+                            Collections.singletonMap(
+                                current.mediaType(),
+                                new OpenApiSchema(new ReferenceSchema("#/components/schemas/" + response.getName()))
+                            )
+                        );
+                    } else {
+                        builder.content(
+                            Collections.singletonMap(current.mediaType(), new OpenApiSchema(ObjectSchema.builder().build()))
+                        );
+                    }
+                } else {
+                    builder.content(
+                        Collections.singletonMap(
+                            current.mediaType(),
+                            new OpenApiSchema(new ReferenceSchema("#/components/schemas/" + current.type().getSimpleName()))
+                        )
+                    );
+                }
+
+                result.put(String.valueOf(current.value().value()),
+                    builder
+                        .description(
+                            Objects.requireNonNullElse(current.description().value(), "Успешный ответ")
+                        )
+                    .build()
+                );
+            }
         }
 
-        return responses;
+        return result;
     }
 
     /**
      * Поставить информацию о типе сущности необходимой для запроса
      *
      * @param method метод
-     * @return информация о типе сущности необходимой для зпроса
+     * @return информация о типе сущности необходимой для запроса
      */
     private @Nullable OpenApiBodyInfo getMethodRequestBody(@NotNull DocMethod method) {
         var body = method.getBody();
@@ -323,7 +366,7 @@ public class OpenApiDocConvertService implements IConversionService<OpenApi> {
      * Поставить информацию о параметрах метода апи
      *
      * @param method метод апи
-     * @return информация о парметре
+     * @return информация о параметр
      */
     private @NotNull Set<OpenApiParameter> getMethodParameters(@NotNull DocMethod method) {
         var parameters = new HashSet<OpenApiParameter>();

@@ -51,7 +51,9 @@ public class DocumentedApi implements AnnotationRegistration {
 
     @Override
     public <T> void registerAnnotation(Class<T> clazz, Function<T, String> description) {
-        var dto = new DocAnnotation<>(clazz, description);
-        this.annotations.put(clazz, dto);
+        this.annotations.put(
+            clazz,
+            new DocAnnotation<>(clazz, description)
+        );
     }
 }
