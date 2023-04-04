@@ -8,7 +8,7 @@
 
     <groupId>io.github.asewhy</groupId>
     <artifactId>doc-api-generator</artifactId>
-    <version>1.5.1</version>
+    <version>1.6.0</version>
 
     <licenses>
         <license>
@@ -45,7 +45,7 @@
         <io.github.asewhy.reflection-utils.version>1.0</io.github.asewhy.reflection-utils.version>
         <org.springframework.boot.spring-boot-starter-validation.version>2.6.3</org.springframework.boot.spring-boot-starter-validation.version>
         <org.springframework.boot.spring-boot-starter-web.verstion>2.6.3</org.springframework.boot.spring-boot-starter-web.verstion>
-        <io.github.asewhy.conversions.verssion>1.4.1</io.github.asewhy.conversions.verssion>
+        <io.github.asewhy.conversions.verssion>1.6.0</io.github.asewhy.conversions.verssion>
     </properties>
 
     <dependencies>

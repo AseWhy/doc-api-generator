@@ -33,7 +33,7 @@ public class DocDTOField {
     public DocDTOField(@NotNull Bound bound, DocDTO parent, StoreShakeService store) {
         this.parent = parent;
         this.bound = bound;
-        this.name = bound.getPureName();
+        this.name = bound.getName();
 
         var type = bound.getType();
         var description = bound.getAnnotation(Description.class);

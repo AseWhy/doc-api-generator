@@ -10,9 +10,11 @@ import io.github.asewhy.apidoc.annotations.documentation.*;
 import io.github.asewhy.apidoc.descriptor.*;
 import io.github.asewhy.apidoc.descriptor.enums.DocDTOType;
 import io.github.asewhy.apidoc.descriptor.enums.DocMethodType;
+import io.github.asewhy.conversions.ConversionMutator;
 import io.github.asewhy.conversions.ConversionProvider;
+import io.github.asewhy.conversions.ConversionResponse;
 import io.github.asewhy.conversions.ConversionUtils;
-import io.github.asewhy.conversions.support.BoundedSource;
+import io.github.asewhy.conversions.support.BoundedAccessible;
 import io.github.asewhy.conversions.support.annotations.ConvertMutator;
 import io.github.asewhy.conversions.support.annotations.ConvertRequest;
 import io.github.asewhy.conversions.support.annotations.ConvertResponse;
@@ -419,12 +421,12 @@ public class StoreShakeService {
                 dto.setDescription(descriptionAnnotation.value());
             }
 
-            for(var field: ReflectionUtils.scanFields(type)) {
+            for(var field: ReflectionUtils.scanFields(type, Set.of(ConversionResponse.class))) {
                 if(field.isAnnotationPresent(JsonIgnore.class)) {
                     continue;
                 }
 
-                dto.addField(new BoundedSource(field, Set.of(field.getDeclaredAnnotations())), this);
+                dto.addField(new BoundedAccessible(field, null, null), this);
             }
         }
 
@@ -469,14 +471,14 @@ public class StoreShakeService {
         dto.setIsRaw(metadata.getBound().size() == 0);
 
         if(dto.getIsRaw()) {
-            var fields = ReflectionUtils.scanFields(type, Set.of(Object.class));
+            var fields = ReflectionUtils.scanFields(type, Set.of(ConversionMutator.class));
 
             for (var field: fields) {
                 if(field.isAnnotationPresent(JsonIgnore.class)) {
                     continue;
                 }
 
-                dto.addField(new BoundedSource(field, Set.of(field.getDeclaredAnnotations())), this);
+                dto.addField(new BoundedAccessible(field, null, null), this);
             }
         } else {
             for (var metaBound : metadata.getFound()) {
